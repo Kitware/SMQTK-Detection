@@ -1,12 +1,11 @@
 import abc
 
-from smqtk.exceptions import NoDetectionError
-from smqtk.representation import SmqtkRepresentation
-from smqtk.utils.dict import merge_dict
-from smqtk.utils.plugin import Pluggable
+from smqtk_core import Plugfigurable
+from smqtk_detection.exceptions import NoDetectionError
+from smqtk_core.dict import merge_dict
 
 
-class DetectionElement (SmqtkRepresentation, Pluggable):
+class DetectionElement (Plugfigurable):
     """
     Representation of a spatial detection.
     """

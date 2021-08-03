@@ -28,6 +28,8 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.6"
 smqtk-core = "^0.18.0"
+smqtk-classifier = "^0.17.0"
+smqtk-image-io = "^0.16.0"
 
 [tool.poetry.dev-dependencies]
 #CI
@@ -45,8 +47,8 @@ coverage = "^5.1"
 pytest = "^5.4.1"
 pytest-cov = "^2.8.1"
 
-[tool.poetry.plugins."smqtk_plugins"]
-"smqtk.representation.detection_element._plugins = smqtk.representation.detection_element._plugins"
+#[tool.poetry.plugins."smqtk_plugins"]
+#"smqtk.representation.detection_element._plugins = smqtk.representation.detection_element._plugins"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -66,6 +68,4 @@ norecursedirs = [
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",
     "IGNORE_EXCEPTION_DETAIL",
-
-
-
+]

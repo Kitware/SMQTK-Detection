@@ -3,10 +3,10 @@ import operator
 
 import numpy
 
-from smqtk.representation import SmqtkRepresentation
+from smqtk_core import Plugfigurable
 
 
-class AxisAlignedBoundingBox (SmqtkRepresentation):
+class AxisAlignedBoundingBox (Plugfigurable):
     """
     Representation of an axis-aligned rectangular region within N-dimensional
     euclidean space.

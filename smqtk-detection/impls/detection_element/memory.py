@@ -1,9 +1,7 @@
-from smqtk.exceptions import NoDetectionError
-from smqtk.representation import (
-    AxisAlignedBoundingBox,
-    ClassificationElement,
-    DetectionElement
-)
+from smqtk_detection.exceptions import NoDetectionError
+from smqtk_detection.interfaces.detection_element import DetectionElement
+from smqtk_classifier.interfaces.classification_element import ClassificationElement
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
 class MemoryDetectionElement (DetectionElement):  # lgtm[py/missing-equals]

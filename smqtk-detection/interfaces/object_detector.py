@@ -3,19 +3,21 @@ import hashlib
 
 import six
 
-from smqtk.algorithms import SmqtkAlgorithm, ImageReader
-from smqtk.utils import ContentTypeValidator
-from smqtk.utils.configuration import (
+from smqtk_core import Plugfigurable
+from smqtk_image_io.interfaces.image_reader import ImageReader
+from smqtk_dataprovider import ContentTypeValidator
+from smqtk_core.configuration import (
     make_default_config,
     from_config_dict,
     to_config_dict,
 )
 
-from ._defaults import DFLT_CLASSIFIER_FACTORY, DFLT_DETECTION_FACTORY
+from smqtk_classifier._defaults import DFLT_CLASSIFIER_FACTORY
+from smqtk_detection._defaults import DFLT_DETECTION_FACTORY
 
 
 @six.add_metaclass(abc.ABCMeta)
-class ObjectDetector (SmqtkAlgorithm, ContentTypeValidator):
+class ObjectDetector (Plugfigurable, ContentTypeValidator):
     """
     Abstract interface to an object detection algorithm.
 

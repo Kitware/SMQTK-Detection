@@ -1,7 +1,3 @@
-__version__ = "0.14.0"
-
-from . import (  # noqa: F401
-    algorithms,
-    representation,
-    iqr
-)
+from .interfaces.detection_element import DetectionElement
+from .interfaces.object_detector import ObjectDetector, ImageMatrixObjectDetector
+from .detection_element_factory import DetectionElementFactory

@@ -5,9 +5,9 @@ Default values and instances for the ObjectDetection interface.
 #   interface.
 # - Providing classifier default here for convenience.
 # noinspection PyProtectedMember
-from smqtk.algorithms.classifier._defaults import DFLT_CLASSIFIER_FACTORY  # noqa: F401, lgtm[py/unused-import]
-from smqtk.representation import DetectionElementFactory
-from smqtk.representation.detection_element.memory \
+from smqtk_classifier._defaults import DFLT_CLASSIFIER_FACTORY  # noqa: F401, lgtm[py/unused-import]
+from smqtk_detection import DetectionElementFactory
+from smqtk_detection.impls.detection_element.memory \
     import MemoryDetectionElement
 
 DFLT_DETECTION_FACTORY = DetectionElementFactory(

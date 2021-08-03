@@ -1,16 +1,15 @@
-from smqtk.representation import (
-    DetectionElement,
-    SmqtkRepresentation,
-)
-from smqtk.utils.configuration import (
+from smqtk_core import Configurable
+
+from smqtk_detection.impls.detection_element.interface import DetectionElement 
+from smqtk_core.configuration import (
     cls_conf_from_config_dict,
     cls_conf_to_config_dict,
     make_default_config,
 )
-from smqtk.utils.dict import merge_dict
+from smqtk_core.dict import merge_dict
 
 
-class DetectionElementFactory (SmqtkRepresentation):
+class DetectionElementFactory (Configurable):
     """
     Factory class for producing DetectionElement instances of a specified type
     and configuration.
