@@ -4,6 +4,7 @@ from smqtk_detection.interfaces.object_detector import ObjectDetector
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_dataprovider.interfaces.data_element import DataElement
 
+
 def test_gen_detection_uuid():
     """
     Test that, for the same input data, we consistently get the same UUID
