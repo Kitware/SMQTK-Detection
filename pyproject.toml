@@ -56,15 +56,12 @@ addopts = [
     "-lv",                      # Show local in trace-backs.
     "--doctest-modules",        # Increased verbosity.
     "--tb=long",                # Trace-back print mode.
-    "--cov=smqtk_classifier",   # Cover our package specifically
+    "--cov=smqtk_detection",   # Cover our package specifically
     "--cov-report=term",        # Coverage report to terminal
 ]
 testpaths = [
     "tests",
     "smqtk_detection",
-]
-norecursedirs = [
-    "tests/data"
 ]
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",

@@ -4,6 +4,7 @@ from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
 from smqtk_image_io.interfaces.image_reader import ImageReader
 from smqtk_dataprovider.interfaces.data_element import DataElement
 
+
 @mock.patch('smqtk_detection.interfaces.object_detector'
             '.make_default_config')
 def test_get_default_config(m_mdc):
