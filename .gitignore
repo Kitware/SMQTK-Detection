@@ -1,4 +1,8 @@
-# Python auto-compiled files
+#PATHS files from breakout
+PATHS-common.txt
+PATHS-detection.txt
+
+## Python auto-compiled files
 *.pyc
 *.pyo
 

@@ -1,8 +1,8 @@
 import unittest.mock as mock
 
-from smqtk.algorithms.object_detection import ObjectDetector
-from smqtk.representation import AxisAlignedBoundingBox, DataElement
-
+from smqtk_detection.interfaces.object_detector import ObjectDetector
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_dataprovider.interfaces.data_element import DataElement
 
 def test_gen_detection_uuid():
     """

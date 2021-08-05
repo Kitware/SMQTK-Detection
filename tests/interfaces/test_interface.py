@@ -73,7 +73,7 @@ def test_get_default_config_override():
     assert 'uuid' not in default
 
 
-@mock.patch('smqtk.utils.configuration.Configurable.from_config')
+@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_override_mdFalse(m_confFromConfig):
     """
     Test that ``from_config`` appropriately passes runtime-provided UUID value.
@@ -90,7 +90,7 @@ def test_from_config_override_mdFalse(m_confFromConfig):
                                              merge_default=False)
 
 
-@mock.patch('smqtk.utils.configuration.Configurable.from_config')
+@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_override_mdTrue(m_confFromConfig):
     """
     Test that ``from_config`` appropriately passes runtime-provided UUID value.
@@ -107,7 +107,7 @@ def test_from_config_override_mdTrue(m_confFromConfig):
                                              merge_default=False)
 
 
-@mock.patch('smqtk.utils.configuration.Configurable.from_config')
+@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_uuid_preseed_mdFalse(m_confFromConfig):
     """
     Test that UUID provided at runtime prevails over any UUID provided
@@ -127,7 +127,7 @@ def test_from_config_uuid_preseed_mdFalse(m_confFromConfig):
                                              merge_default=False)
 
 
-@mock.patch('smqtk.utils.configuration.Configurable.from_config')
+@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_uuid_preseed_mdTrue(m_confFromConfig):
     """
     Test that UUID provided at runtime prevails over any UUID provided

@@ -2,10 +2,9 @@ import unittest.mock as mock
 
 from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
 from smqtk_image_io.interfaces.image_reader import ImageReader
-from smqtk.representation import DataElement
+from smqtk_dataprovider.interfaces.data_element import DataElement
 
-
-@mock.patch('smqtk.algorithms.object_detection._interface'
+@mock.patch('smqtk_detection.interfaces.object_detector'
             '.make_default_config')
 def test_get_default_config(m_mdc):
     """
@@ -20,10 +19,9 @@ def test_get_default_config(m_mdc):
         'image_reader': m_mdc_return_value,
     }
 
-
-@mock.patch('smqtk.algorithms.object_detection._interface'
+@mock.patch('smqtk_detection.interfaces.object_detector'
             '.from_config_dict')
-@mock.patch('smqtk.algorithms.object_detection._interface'
+@mock.patch('smqtk_detection.interfaces.object_detector'
             '.to_config_dict')
 def test_config_cycle(m_tcd, m_fcd):
     """

@@ -3,13 +3,14 @@ import pickle
 import unittest.mock as mock
 import pytest
 
-from smqtk.exceptions import NoDetectionError
-from smqtk.representation import AxisAlignedBoundingBox, ClassificationElement
-from smqtk.representation.classification_element.memory \
+from smqtk_detection.exceptions import NoDetectionError
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_classifier.interfaces.classification_element import ClassificationElement
+from smqtk_classifier.impls.classification_element.memory \
     import MemoryClassificationElement
-from smqtk.representation.detection_element.memory \
+from smqtk_detection.impls.detection_element.memory \
     import MemoryDetectionElement
-from smqtk.utils.configuration import configuration_test_helper
+from smqtk_core.configuration import configuration_test_helper
 
 
 def test_is_usable():
