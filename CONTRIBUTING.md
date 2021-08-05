@@ -1,4 +1,4 @@
-# Contributing to SMQTK
+# Contributing to SMQTK-Detection
 
 Here we describe at a high level how to contribute to SMQTK.
 See the [SMQTK README] file for additional information.
@@ -37,10 +37,3 @@ pull requests are made.
 All checks/tests must pass before a PR can be merged.
 
 Sphinx is used for manual and automatic API [documentation].
-
-
-[SMQTK README]: README.md
-[on GitHub]: https://github.com/Kitware/SMQTK
-[build instructions]: http://smqtk.readthedocs.org/en/latest/building.html
-[Travis-CI]: https://travis-ci.org/Kitware/SMQTK/
-[documentation]: docs/
