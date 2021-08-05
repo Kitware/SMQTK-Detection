@@ -1,6 +1,6 @@
 from smqtk_core import Configurable
 
-from smqtk_detection.interfaces.detection_element import DetectionElement 
+from smqtk_detection.interfaces.detection_element import DetectionElement
 from smqtk_core.configuration import (
     cls_conf_from_config_dict,
     cls_conf_to_config_dict,
