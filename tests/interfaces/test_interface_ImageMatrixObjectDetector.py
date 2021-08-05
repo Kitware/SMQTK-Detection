@@ -20,6 +20,7 @@ def test_get_default_config(m_mdc):
         'image_reader': m_mdc_return_value,
     }
 
+
 @mock.patch('smqtk_detection.interfaces.object_detector'
             '.from_config_dict')
 @mock.patch('smqtk_detection.interfaces.object_detector'
