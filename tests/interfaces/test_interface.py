@@ -1,8 +1,8 @@
 import unittest.mock as mock
 import pytest
 
-from smqtk.exceptions import NoDetectionError
-from smqtk.representation import DetectionElement
+from smqtk_detection.exceptions import NoDetectionError
+from smqtk_detection.interfaces.detection_element import DetectionElement
 
 
 ###############################################################################

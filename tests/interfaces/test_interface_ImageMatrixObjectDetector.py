@@ -1,6 +1,7 @@
 import unittest.mock as mock
 
-from smqtk.algorithms import ImageReader, ImageMatrixObjectDetector
+from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
+from smqtk_image_io.interfaces.image_reader import ImageReader
 from smqtk.representation import DataElement
 
 

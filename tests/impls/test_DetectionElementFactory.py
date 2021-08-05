@@ -1,7 +1,7 @@
 import unittest.mock as mock
 
-from smqtk.representation import DetectionElement
-from smqtk.representation.detection_element_factory \
+from smqtk_detection.interfaces.detection_element import DetectionElement
+from smqtk_detection.detection_element_factory \
     import DetectionElementFactory
 
 
