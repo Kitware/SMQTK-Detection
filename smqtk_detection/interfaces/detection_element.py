@@ -6,7 +6,8 @@ from smqtk_core.dict import merge_dict
 from typing import Hashable
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_classifier.interfaces.classification_element import ClassificationElement
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, TypeVar, Type
+D = TypeVar("D", bound="DetectionElement")
 from smqtk_core.configuration import Configurable
 
 
@@ -27,7 +28,11 @@ class DetectionElement (Plugfigurable):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_config(cls, config_dict: Dict[Any, Any], uuid: Hashable, merge_default: bool = True) -> Configurable:
+    def from_config(# type: ignore
+        cls: Type[D], 
+        config_dict: Dict[Any, Any], 
+        uuid: Hashable, 
+        merge_default: bool = True) -> D:
         """
         Override of
         :meth:`smqtk.utils.configuration.Configurable.from_config` with the
