@@ -5,8 +5,8 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
-from typing import TypeVar, Type
-C = TypeVar("A", bound="AxisAlignedBoundingBox")
+from typing import TypeVar, Type, Union, Optional
+A = TypeVar("A", bound="AxisAlignedBoundingBox")
 
 
 class AxisAlignedBoundingBox (Plugfigurable):
@@ -37,7 +37,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     EQUALITY_ATOL = 1.e-8
     EQUALITY_RTOL = 1.e-5
 
-    def __init__(self, min_vertex: collections.abc.Sequence, max_vertex: collections.abc.Sequence) -> None:
+    def __init__(self, min_vertex: int, max_vertex: int) -> None:
         """
         Create a new AxisAlignedBoundingBox from the given minimum and maximum
         euclidean-space vertex.
@@ -85,7 +85,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     def __hash__(self) -> int:
         return hash((tuple(self.min_vertex), tuple(self.max_vertex)))
 
-    def __eq__(self, other: Type[A]) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Two bounding boxes are equal if the describe the same spatial area.
 
@@ -105,7 +105,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
                                rtol=self.EQUALITY_RTOL,
                                atol=self.EQUALITY_ATOL))
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not (self == other)
 
     def __getstate__(self) -> tuple:
@@ -114,7 +114,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
             self.max_vertex.tolist(),
         )
 
-    def __setstate__(self, state) -> None:
+    def __setstate__(self, state: Union[list, tuple]) -> None:
         self._set_vertices(*state)
 
     def _set_vertices(self, min_v: int, max_v: int) -> None:
@@ -129,7 +129,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
             'max_vertex': self.max_vertex.tolist(),
         }
 
-    def intersection(self, other: Type[A]) -> A:
+    def intersection(self, other: Type[AxisAlignedBoundingBox]) -> Optional[AxisAlignedBoundingBox]:
         """
         Get the AxisAlignedBoundingBox that represents the intersection between
         this box and the given ``other`` box.
@@ -185,7 +185,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         return self.deltas.dtype
 
     @property
-    def hypervolume(self)-> float:
+    def hypervolume(self) -> float:
         """
         :return: The volume of this [hyper-dimensional] spatial bounding box.
             Unit of volume depends on the dimensionality of the vertices
