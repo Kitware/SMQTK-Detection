@@ -5,6 +5,7 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
+from typing import TypeVar, Type
 C = TypeVar("A", bound="AxisAlignedBoundingBox")
 
 
