@@ -34,7 +34,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     EQUALITY_ATOL = 1.e-8
     EQUALITY_RTOL = 1.e-5
 
-    def __init__(self, min_vertex, max_vertex) -> None:
+    def __init__(self, min_vertex: collections.abc.Sequence, max_vertex: collections.abc.Sequence) -> None:
         """
         Create a new AxisAlignedBoundingBox from the given minimum and maximum
         euclidean-space vertex.
@@ -70,19 +70,19 @@ class AxisAlignedBoundingBox (Plugfigurable):
             raise ValueError("The maximum vertex was not strictly >= the "
                              "minimum vertex.")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "<{} [{}, {}]>"\
             .format(self.__class__.__name__, self.min_vertex, self.max_vertex)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<{}.{} min_vertex={} max_vertex={}>"\
             .format(self.__class__.__module__, self.__class__.__name__,
                     self.min_vertex, self.max_vertex)
 
-    def __hash__(self):
+    def __hash__(self) -> hash:
         return hash((tuple(self.min_vertex), tuple(self.max_vertex)))
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Two bounding boxes are equal if the describe the same spatial area.
 
@@ -102,7 +102,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
                                rtol=self.EQUALITY_RTOL,
                                atol=self.EQUALITY_ATOL))
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not (self == other)
 
     def __getstate__(self):
@@ -120,13 +120,13 @@ class AxisAlignedBoundingBox (Plugfigurable):
         self.max_vertex = numpy.asarray(max_v)
         self.max_vertex.flags.writeable = False
 
-    def get_config(self):
+    def get_config(self) -> dict:
         return {
             'min_vertex': self.min_vertex.tolist(),
             'max_vertex': self.max_vertex.tolist(),
         }
 
-    def intersection(self, other):
+    def intersection(self, other) -> AxisAlignedBoundingBox:
         """
         Get the AxisAlignedBoundingBox that represents the intersection between
         this box and the given ``other`` box.
@@ -149,7 +149,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         return AxisAlignedBoundingBox(inter_min_v, inter_max_v)
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         """
         :return: The number of dimensions this bounding volume covers.
         :rtype: int
@@ -160,7 +160,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         return self.min_vertex.size
 
     @property
-    def deltas(self):
+    def deltas(self) -> numpy.ndarray:
         """
         Get the lengths of this bounding box's edges along its dimensions.
 
@@ -173,7 +173,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         return self.max_vertex - self.min_vertex
 
     @property
-    def dtype(self):
+    def dtype(self) -> numpy.dtype:
         """
         :return: Most representative data type required to fully express this
             bounding box.
@@ -182,7 +182,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         return self.deltas.dtype
 
     @property
-    def hypervolume(self):
+    def hypervolume(self)-> float:
         """
         :return: The volume of this [hyper-dimensional] spatial bounding box.
             Unit of volume depends on the dimensionality of the vertices
