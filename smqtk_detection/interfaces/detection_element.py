@@ -3,6 +3,11 @@ import abc
 from smqtk_core import Plugfigurable
 from smqtk_detection.exceptions import NoDetectionError
 from smqtk_core.dict import merge_dict
+from typing import Hashable
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_classifier.interfaces.classification_element import ClassificationElement
+from typing import Dict, Any, Tuple
+from smqtk_core.configuration import Configurable
 
 
 class DetectionElement (Plugfigurable):
@@ -13,7 +18,7 @@ class DetectionElement (Plugfigurable):
     __slots__ = ('_uuid',)
 
     @classmethod
-    def get_default_config(cls):
+    def get_default_config(cls) -> Dict[str, Any]:
         # Override from Configurable.
         default = super(DetectionElement, cls).get_default_config()
         # Remove runtime positional argument(s).
@@ -22,7 +27,7 @@ class DetectionElement (Plugfigurable):
 
     # noinspection PyMethodOverriding
     @classmethod
-    def from_config(cls, config_dict, uuid, merge_default=True):
+    def from_config(cls, config_dict: Dict[Any, Any], uuid: Hashable, merge_default: bool = True) -> Configurable:
         """
         Override of
         :meth:`smqtk.utils.configuration.Configurable.from_config` with the
@@ -52,7 +57,7 @@ class DetectionElement (Plugfigurable):
         return super(DetectionElement, cls).from_config(config_dict,
                                                         merge_default=False)
 
-    def __init__(self, uuid):
+    def __init__(self, uuid: Hashable) -> None:
         """
         Initialize a new detection element with the given ``uuid``.
 
@@ -70,7 +75,7 @@ class DetectionElement (Plugfigurable):
 
     __hash__ = None  # type: ignore
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """
         Equality of two detections is defined by their equal spatial overlap
         AND their equivalent classification.
@@ -91,14 +96,14 @@ class DetectionElement (Plugfigurable):
         except NoDetectionError:
             return False
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not (self == other)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # using "{{...}}" to skip .format activation.
         return "{:s}{{uuid: {}}}".format(self.__class__.__name__, self._uuid)
 
-    def __nonzero__(self):
+    def __nonzero__(self) -> bool:
         """
         A DetectionElement is considered non-zero if ``has_detection`` returns
         True. See method documentation for details.
@@ -112,7 +117,7 @@ class DetectionElement (Plugfigurable):
     __bool__ = __nonzero__
 
     @property
-    def uuid(self):
+    def uuid(self) -> Hashable:
         return self._uuid
 
     #
@@ -120,17 +125,17 @@ class DetectionElement (Plugfigurable):
     #
 
     @abc.abstractmethod
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         return {
             '_uuid': self._uuid,
         }
 
     @abc.abstractmethod
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         self._uuid = state['_uuid']
 
     @abc.abstractmethod
-    def has_detection(self):
+    def has_detection(self) -> bool:
         """
         :return: Whether or not this container currently contains a valid
             detection bounding box and classification element (must be
@@ -139,7 +144,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def get_bbox(self):
+    def get_bbox(self) -> None:
         """
         :return: The spatial bounding box of this detection.
         :rtype: smqtk.representation.AxisAlignedBoundingBox
@@ -148,7 +153,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def get_classification(self):
+    def get_classification(self) -> None:
         """
         :return: The classification element of this detection.
         :rtype: smqtk.representation.ClassificationElement
@@ -158,7 +163,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def get_detection(self):
+    def get_detection(self) -> Tuple[AxisAlignedBoundingBox, ClassificationElement]:
         """
         :return: The paired spatial bounding box and classification element of
             this detection.
@@ -171,7 +176,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def set_detection(self, bbox, classification_element):
+    def set_detection(self, bbox: AxisAlignedBoundingBox, classification_element: ClassificationElement) -> DetectionElement:
         """
         Set a bounding box and classification element to this detection
         element.
