@@ -5,6 +5,8 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
+C = TypeVar("A", bound="AxisAlignedBoundingBox")
+
 
 class AxisAlignedBoundingBox (Plugfigurable):
     """
@@ -79,10 +81,10 @@ class AxisAlignedBoundingBox (Plugfigurable):
             .format(self.__class__.__module__, self.__class__.__name__,
                     self.min_vertex, self.max_vertex)
 
-    def __hash__(self) -> hash:
+    def __hash__(self) -> int:
         return hash((tuple(self.min_vertex), tuple(self.max_vertex)))
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Type[A]) -> bool:
         """
         Two bounding boxes are equal if the describe the same spatial area.
 
@@ -105,7 +107,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     def __ne__(self, other) -> bool:
         return not (self == other)
 
-    def __getstate__(self):
+    def __getstate__(self) -> tuple:
         return (
             self.min_vertex.tolist(),
             self.max_vertex.tolist(),
@@ -114,7 +116,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     def __setstate__(self, state) -> None:
         self._set_vertices(*state)
 
-    def _set_vertices(self, min_v, max_v) -> None:
+    def _set_vertices(self, min_v: int, max_v: int) -> None:
         self.min_vertex = numpy.asarray(min_v)
         self.min_vertex.flags.writeable = False
         self.max_vertex = numpy.asarray(max_v)
@@ -126,7 +128,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
             'max_vertex': self.max_vertex.tolist(),
         }
 
-    def intersection(self, other) -> AxisAlignedBoundingBox:
+    def intersection(self, other: Type[A]) -> A:
         """
         Get the AxisAlignedBoundingBox that represents the intersection between
         this box and the given ``other`` box.
