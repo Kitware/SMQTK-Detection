@@ -5,7 +5,7 @@ from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_dataprovider.interfaces.data_element import DataElement
 
 
-def test_gen_detection_uuid():
+def test_gen_detection_uuid() -> None:
     """
     Test that, for the same input data, we consistently get the same UUID
     for some number of repetitions.
@@ -35,7 +35,7 @@ def test_gen_detection_uuid():
         "have happened."
 
 
-def test_gen_detection_uuid_perturbations():
+def test_gen_detection_uuid_perturbations() -> None:
     """
     Test that some minor variances in input data
     We obviously cannot check everything, so this is just a basic test.
@@ -62,7 +62,7 @@ def test_gen_detection_uuid_perturbations():
         "t_labels perturbation resulted in same UUID"
 
 
-def test_detect_objects():
+def test_detect_objects() -> None:
     """
     Test expected ``detect_objects`` behavior when ``_detect_objects``
     yields expected values.

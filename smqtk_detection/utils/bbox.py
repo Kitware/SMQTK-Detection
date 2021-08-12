@@ -37,7 +37,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     EQUALITY_ATOL = 1.e-8
     EQUALITY_RTOL = 1.e-5
 
-    def __init__(self, min_vertex: List[int], max_vertex: List[int]) -> None:
+    def __init__(self, min_vertex: List[Union(int, float)], max_vertex: List[Union(int, float)]) -> None:
         """
         Create a new AxisAlignedBoundingBox from the given minimum and maximum
         euclidean-space vertex.

@@ -2,6 +2,9 @@ import abc
 import hashlib
 
 import six
+import numpy
+
+from typing import Hashable, List, Set, Iterator, Dict, Tuple, Union, Any
 
 from smqtk_core import Plugfigurable
 from smqtk_image_io.interfaces.image_reader import ImageReader
@@ -14,6 +17,13 @@ from smqtk_core.configuration import (
 
 from smqtk_classifier._defaults import DFLT_CLASSIFIER_FACTORY
 from smqtk_detection._defaults import DFLT_DETECTION_FACTORY
+
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_detection.interfaces.detection_element import DetectionElement
+from smqtk_detection.detection_element_factory \
+    import DetectionElementFactory
+from smqtk_dataprovider.interfaces.data_element import DataElement
+from smqtk_classifier.classification_element_factory import ClassificationElementFactory
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -32,7 +42,7 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
     __slots__ = ()
 
     @staticmethod
-    def _gen_detection_uuid(data_uuid, bbox, labels):
+    def _gen_detection_uuid(data_uuid: str, bbox: AxisAlignedBoundingBox, labels: Any) -> Hashable:
         """
         Local standard for producing the UUID of a DetectionElement based on
         parent data, component bounding box and classification labels.
@@ -57,9 +67,9 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
             ''.join(sorted(map(str, labels)))
         return hashlib.sha1(six.b(hashable)).hexdigest()
 
-    def detect_objects(self, data_element,
-                       de_factory=DFLT_DETECTION_FACTORY,
-                       ce_factory=DFLT_CLASSIFIER_FACTORY):
+    def detect_objects(self, data_element: DataElement,
+                       de_factory: DetectionElementFactory = DFLT_DETECTION_FACTORY,
+                       ce_factory: ClassificationElementFactory = DFLT_CLASSIFIER_FACTORY) -> Iterator[DetectionElement]:
         """
         Detect objects in the given data.
 
@@ -105,7 +115,7 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
             yield de
 
     @abc.abstractmethod
-    def _detect_objects(self, data):
+    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
         """
         Internal method that defines the generation of paired bounding boxes
         and classification maps for detected objects in the given data.
@@ -144,7 +154,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
     """
 
     @classmethod
-    def get_default_config(cls):
+    def get_default_config(cls) -> dict:
         """
         Generate and return a default configuration dictionary for this class.
         This will be primarily used for generating what the configuration
@@ -167,7 +177,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         return default
 
     @classmethod
-    def from_config(cls, config_dict, merge_default=True):
+    def from_config(cls, config_dict: dict, merge_default: bool = True) -> ImageMatrixObjectDetector:
         """
         Instantiate a new instance of this class given the configuration
         JSON-compliant dictionary encapsulating initialization arguments.
@@ -187,7 +197,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         :rtype: ImageMatrixObjectDetector
         """
         # Shallow copy
-        config_dict = dict(config_dict)  # type: dict
+        config_dict = config_dict
 
         config_dict['image_reader'] = from_config_dict(
             config_dict.get('image_reader', {}), ImageReader.get_impls()
@@ -197,7 +207,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
             config_dict, merge_default=merge_default
         )
 
-    def __init__(self, image_reader):
+    def __init__(self, image_reader: ImageReader) -> None:
         """
         An image matrix object detector must have a method of converting a
         DataElement into an image pixel matrix so this interface broadly
@@ -211,7 +221,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         self._image_reader = image_reader
 
     @abc.abstractmethod
-    def get_config(self):
+    def get_config(self) -> dict:
         """
         Return a JSON-compliant dictionary that could be passed to this class's
         ``from_config`` method to produce an instance with identical
@@ -235,7 +245,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
             'image_reader': to_config_dict(self._image_reader),
         }
 
-    def valid_content_types(self):
+    def valid_content_types(self) -> Set[str]:
         """
         :return: A set valid MIME types that are "valid" within the implementing
             class' context.
@@ -243,7 +253,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         """
         return self._image_reader.valid_content_types()
 
-    def is_valid_element(self, data_element):
+    def is_valid_element(self, data_element: DataElement) -> bool:
         """
         Check if the given DataElement instance reports a content type that
         matches one of the MIME types reported by ``valid_content_types``.
@@ -260,7 +270,8 @@ class ImageMatrixObjectDetector (ObjectDetector):
         """
         return self._image_reader.is_valid_element(data_element)
 
-    def _detect_objects(self, data):
+    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox,
+                                      Dict[Hashable, float]]]:
         """
         Internal method that defines the generation of paired bounding boxes
         and classification maps for detected objects in the given data.
@@ -289,7 +300,8 @@ class ImageMatrixObjectDetector (ObjectDetector):
         )
 
     @abc.abstractmethod
-    def _detect_objects_matrix(self, mat):
+    def _detect_objects_matrix(self, mat: numpy.ndarray) -> Iterator[Tuple[AxisAlignedBoundingBox,
+                                      Dict[Hashable, float]]]:
         """
         Internal method to be implemented that defines the generation of paired
         bounding boxes and classification maps for detected objects in the given

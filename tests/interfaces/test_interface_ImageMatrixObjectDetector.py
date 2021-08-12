@@ -1,31 +1,35 @@
 import unittest.mock as mock
+import numpy
+from typing import Any, Dict
 
 from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
 from smqtk_image_io.interfaces.image_reader import ImageReader
 from smqtk_dataprovider.interfaces.data_element import DataElement
 
 
-@mock.patch('smqtk_detection.interfaces.object_detector'
-            '.make_default_config')
-def test_get_default_config(m_mdc):
+#@mock.patch('smqtk_detection.interfaces.object_detector'
+#            '.make_default_config')
+def test_get_default_config() -> None:
     """
     Test configuration default generation
     """
-    m_mdc_return_value = "make default expected return"
-    m_mdc.return_value = m_mdc_return_value
+    with mock.patch('smqtk_detection.interfaces.object_detector'
+            '.make_default_config') as m_mdc:
+        m_mdc_return_value = "make default expected return"
+        m_mdc.return_value = m_mdc_return_value
 
-    imod_dflt_config = ImageMatrixObjectDetector.get_default_config()
-    m_mdc.assert_called_once()
-    assert imod_dflt_config == {
-        'image_reader': m_mdc_return_value,
-    }
+        imod_dflt_config = ImageMatrixObjectDetector.get_default_config()
+        m_mdc.assert_called_once()
+        assert imod_dflt_config == {
+            'image_reader': m_mdc_return_value,
+        }
 
 
-@mock.patch('smqtk_detection.interfaces.object_detector'
-            '.from_config_dict')
-@mock.patch('smqtk_detection.interfaces.object_detector'
-            '.to_config_dict')
-def test_config_cycle(m_tcd, m_fcd):
+#@mock.patch('smqtk_detection.interfaces.object_detector'
+#            '.from_config_dict')
+#@mock.patch('smqtk_detection.interfaces.object_detector'
+#            '.to_config_dict')
+def test_config_cycle()  -> None:
     """
     Test that get_config/from_config cycle results in instance with same
     appropriate attribute reflection.
@@ -33,42 +37,45 @@ def test_config_cycle(m_tcd, m_fcd):
     class MockIMOD (ImageMatrixObjectDetector):
 
         @classmethod
-        def is_usable(cls):
+        def is_usable(cls) -> bool:
             return True
 
-        def get_config(self):
+        def get_config(self) -> Dict[str, Any]:
             """ stub to be mocked """
             return super(MockIMOD, self).get_config()
 
-        def _detect_objects_matrix(self, mat):
+        def _detect_objects_matrix(self, mat: numpy.ndarray) -> None:
             """ stub to be mocked """
             raise NotImplementedError()
 
-    t_imgreader_value = 'imma image reader'
+    with mock.patch('smqtk_detection.interfaces.object_detector.to_config_dict') as m_tcd:
+        with mock.patch('smqtk_detection.interfaces.object_detector.from_config_dict') as m_fcd:
 
-    # noinspection PyTypeChecker
-    inst = MockIMOD(t_imgreader_value)
+            t_imgreader_value = 'imma image reader'
 
-    m_tcd_return_value = 'expected tcd return value'
-    m_tcd.return_value = m_tcd_return_value
+            # noinspection PyTypeChecker
+            inst = MockIMOD(t_imgreader_value)
 
-    m_fcd_return_value = 'expected fcd return value'
-    m_fcd.return_value = m_fcd_return_value
+            m_tcd_return_value = 'expected tcd return value'
+            m_tcd.return_value = m_tcd_return_value
 
-    # Test running the cycle
-    inst_config = inst.get_config()
-    inst2 = MockIMOD.from_config(inst_config)
-    inst2_config = inst2.get_config()
+            m_fcd_return_value = 'expected fcd return value'
+            m_fcd.return_value = m_fcd_return_value
 
-    assert m_tcd.call_count == 2
-    m_tcd.assert_any_call(t_imgreader_value)
-    m_fcd.assert_called_once_with(m_tcd_return_value,
-                                  ImageReader.get_impls())
-    m_tcd.assert_any_call(m_fcd_return_value)
-    assert inst_config == inst2_config
+            # Test running the cycle
+            inst_config = inst.get_config()
+            inst2 = MockIMOD.from_config(inst_config)
+            inst2_config = inst2.get_config()
+
+            assert m_tcd.call_count == 2
+            m_tcd.assert_any_call(t_imgreader_value)
+            m_fcd.assert_called_once_with(m_tcd_return_value,
+                                      ImageReader.get_impls())
+            m_tcd.assert_any_call(m_fcd_return_value)
+            assert inst_config == inst2_config
 
 
-def test_valid_content_types():
+def test_valid_content_types() -> None:
     """
     Test that valid content types are inherited from the ImageReader algo
     provided.
@@ -91,7 +98,7 @@ def test_valid_content_types():
     m_image_reader.valid_content_types.assert_called_once()
 
 
-def test_is_valid_element():
+def test_is_valid_element() -> None:
     """
     Test that valid element determination is inherited from ImageReader algo
     provided.
@@ -111,7 +118,7 @@ def test_is_valid_element():
     m_image_reader.is_valid_element.assert_called_once_with(expected_de)
 
 
-def test_detect_objects():
+def test_detect_objects() -> None:
     """
     Test that ``_detect_objects`` wrapper acts as expected
     """
