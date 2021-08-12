@@ -6,7 +6,7 @@ from smqtk_core.dict import merge_dict
 from typing import Hashable
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_classifier.interfaces.classification_element import ClassificationElement
-from typing import Dict, Any, Tuple, TypeVar, Type
+from typing import Dict, Any, Tuple, TypeVar, Type, Optional
 D = TypeVar("D", bound="DetectionElement")
 from smqtk_core.configuration import Configurable
 
@@ -149,7 +149,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def get_bbox(self) -> None:
+    def get_bbox(self) -> Optional[AxisAlignedBoundingBox]:
         """
         :return: The spatial bounding box of this detection.
         :rtype: smqtk.representation.AxisAlignedBoundingBox
@@ -158,7 +158,7 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def get_classification(self) -> None:
+    def get_classification(self) -> Optional[ClassificationElement]:
         """
         :return: The classification element of this detection.
         :rtype: smqtk.representation.ClassificationElement

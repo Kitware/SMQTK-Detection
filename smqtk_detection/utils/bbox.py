@@ -5,7 +5,7 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
-from typing import TypeVar, Type, Union, Optional, List
+from typing import TypeVar, Type, Union, Optional, List, Any
 A = TypeVar("A", bound="AxisAlignedBoundingBox")
 
 
@@ -37,7 +37,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     EQUALITY_ATOL = 1.e-8
     EQUALITY_RTOL = 1.e-5
 
-    def __init__(self, min_vertex: List[Union(int, float)], max_vertex: List[Union(int, float)]) -> None:
+    def __init__(self, min_vertex: List[Union[int, float]], max_vertex: List[Union[int, float]]) -> None:
         """
         Create a new AxisAlignedBoundingBox from the given minimum and maximum
         euclidean-space vertex.
@@ -117,7 +117,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     def __setstate__(self, state: Union[list, tuple]) -> None:
         self._set_vertices(*state)
 
-    def _set_vertices(self, min_v: int, max_v: int) -> None:
+    def _set_vertices(self, min_v: List[Any], max_v: List[Any]) -> None:
         self.min_vertex = numpy.asarray(min_v)
         self.min_vertex.flags.writeable = False
         self.max_vertex = numpy.asarray(max_v)

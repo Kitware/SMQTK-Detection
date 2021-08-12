@@ -431,7 +431,7 @@ smqtk-dataprovider = ">=0.16.0"
 
 [[package]]
 name = "smqtk-image-io"
-version = "0.16.0"
+version = "0.16.1"
 description = "SMQTK Image IO"
 category = "main"
 optional = false
@@ -985,8 +985,8 @@ smqtk-descriptors = [
     {file = "smqtk_descriptors-0.16.0.tar.gz", hash = "sha256:3d1b758a1a569d6f5a9acec26879a1686b6c485148151812c945326a7fd75dc3"},
 ]
 smqtk-image-io = [
-    {file = "smqtk_image_io-0.16.0-py3-none-any.whl", hash = "sha256:eb48607a8db67888b329b6d20806d710e2fcdc6fb40417d5842e0e7a9531046b"},
-    {file = "smqtk_image_io-0.16.0.tar.gz", hash = "sha256:06c52b7aa43cd1161d7e238cab93a57c0024d80d3ce134811b779cee3b69d63a"},
+    {file = "smqtk_image_io-0.16.1-py3-none-any.whl", hash = "sha256:a851ca9d776ac1b049a672b5e8896f69021feb00cee20179ceb04f64d03fea26"},
+    {file = "smqtk_image_io-0.16.1.tar.gz", hash = "sha256:9aa31bd987e1c93a27611d054a944939090c980c4c5fa5b9a66fd0120e0e2145"},
 ]
 snowballstemmer = [
     {file = "snowballstemmer-2.1.0-py2.py3-none-any.whl", hash = "sha256:b51b447bea85f9968c13b650126a888aabd4cb4463fca868ec596826325dedc2"},

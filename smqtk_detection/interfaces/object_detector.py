@@ -4,7 +4,7 @@ import hashlib
 import six
 import numpy
 
-from typing import Hashable, List, Set, Iterator, Dict, Tuple, Union, Any
+from typing import Hashable, List, Set, Iterator, Dict, Tuple, Union, Any, Optional
 
 from smqtk_core import Plugfigurable
 from smqtk_image_io.interfaces.image_reader import ImageReader
@@ -270,8 +270,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         """
         return self._image_reader.is_valid_element(data_element)
 
-    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox,
-                                      Dict[Hashable, float]]]:
+    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
         """
         Internal method that defines the generation of paired bounding boxes
         and classification maps for detected objects in the given data.
@@ -300,8 +299,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         )
 
     @abc.abstractmethod
-    def _detect_objects_matrix(self, mat: numpy.ndarray) -> Iterator[Tuple[AxisAlignedBoundingBox,
-                                      Dict[Hashable, float]]]:
+    def _detect_objects_matrix(self, mat: numpy.ndarray) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
         """
         Internal method to be implemented that defines the generation of paired
         bounding boxes and classification maps for detected objects in the given

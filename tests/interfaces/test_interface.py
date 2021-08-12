@@ -5,7 +5,7 @@ from smqtk_detection.exceptions import NoDetectionError
 from smqtk_detection.interfaces.detection_element import DetectionElement
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_classifier.interfaces.classification_element import ClassificationElement
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 
 
 ###############################################################################
@@ -37,7 +37,8 @@ class DummyDetectionElement (DetectionElement):
     def __setstate__(self, state: Dict[Any, Any]) -> None:
         raise NotImplementedError()
 
-    def has_detection(self) -> bool:
+    def has_detection(# type: ignore
+        self) -> bool:
         raise NotImplementedError()
 
     def set_detection(self, bbox: AxisAlignedBoundingBox, classification_element: ClassificationElement) -> DetectionElement:
@@ -49,7 +50,8 @@ class DummyDetectionElement (DetectionElement):
     def get_classification(self) -> None:
         raise NotImplementedError()
 
-    def get_detection(self) -> Tuple[AxisAlignedBoundingBox, ClassificationElement]:
+    def get_detection(# type: ignore
+        self) -> Tuple[AxisAlignedBoundingBox, ClassificationElement]:
         raise NotImplementedError()
 
 
@@ -84,7 +86,7 @@ def test_from_config_override_mdFalse() -> None:
     expected_ret_val = 'expected return value'
     with mock.patch('smqtk_core.configuration.Configurable.from_config') as m_confFromConfig:
         m_confFromConfig.return_value = expected_ret_val
-        given_conf = {}
+        given_conf: dict = {}
         expected_uuid = 'test uuid'
         expected_conf = {
             'uuid': expected_uuid
@@ -102,7 +104,7 @@ def test_from_config_override_mdTrue() -> None:
     Test that ``from_config`` appropriately passes runtime-provided UUID value.
     """
     with mock.patch('smqtk_core.configuration.Configurable.from_config') as m_confFromConfig:
-        given_conf = {}
+        given_conf: dict = {}
         expected_uuid = 'test uuid'
         expected_conf = {
             'uuid': expected_uuid
@@ -170,8 +172,7 @@ def test_eq_both_no_detections() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = d2.get_detection = \
-        mock.MagicMock(side_effect=NoDetectionError)
+    d1.get_detection = d2.get_detection = mock.MagicMock(side_effect=NoDetectionError) # type: ignore
     assert (d1 == d2) is False
     assert (d2 == d1) is False
     assert (d1 != d2) is True
@@ -184,9 +185,9 @@ def test_eq_one_no_detection() -> None:
     NOT equal.
     """
     d_without = DummyDetectionElement(0)
-    d_without.get_detection = mock.MagicMock(side_effect=NoDetectionError)
+    d_without.get_detection = mock.MagicMock(side_effect=NoDetectionError) # type: ignore
     d_with = DummyDetectionElement(1)
-    d_with.get_detection = mock.MagicMock(return_value=(1, 2))
+    d_with.get_detection = mock.MagicMock(return_value=(1, 2)) # type: ignore
 
     assert (d_with == d_without) is False
     assert (d_without == d_with) is False
@@ -201,8 +202,8 @@ def test_eq_unequal_detections() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = mock.Mock(return_value=('a', 1))
-    d2.get_detection = mock.Mock(return_value=('b', 2))
+    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
+    d2.get_detection = mock.Mock(return_value=('b', 2)) # type: ignore
     assert (d1 == d2) is False
 
 
@@ -214,12 +215,12 @@ def test_eq_unequal_just_one() -> None:
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
 
-    d1.get_detection = mock.Mock(return_value=('a', 1))
-    d2.get_detection = mock.Mock(return_value=('a', 2))
+    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
+    d2.get_detection = mock.Mock(return_value=('a', 2)) # type: ignore
     assert (d1 == d2) is False
 
-    d1.get_detection = mock.Mock(return_value=('a', 1))
-    d2.get_detection = mock.Mock(return_value=('b', 1))
+    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
+    d2.get_detection = mock.Mock(return_value=('b', 1)) # type: ignore
     assert (d1 == d2) is False
 
 
@@ -230,8 +231,7 @@ def test_eq_success() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = d2.get_detection = \
-        mock.MagicMock(return_value=('a', 0))
+    d1.get_detection = d2.get_detection = mock.MagicMock(return_value=('a', 0)) # type: ignore
     assert d1 == d2
 
 
@@ -242,7 +242,7 @@ def test_nonzero_has_detection() -> None:
     """
     expected_val = True
     inst = DummyDetectionElement(0)
-    inst.has_detection = mock.MagicMock(return_value=expected_val)
+    inst.has_detection = mock.MagicMock(return_value=expected_val) # type: ignore
     assert bool(inst) is expected_val
     inst.has_detection.assert_called_once_with()
 
@@ -254,7 +254,7 @@ def test_nonzero_no_detection() -> None:
     """
     expected_val = False
     inst = DummyDetectionElement(0)
-    inst.has_detection = mock.MagicMock(return_value=expected_val)
+    inst.has_detection = mock.MagicMock(return_value=expected_val) # type: ignore
     assert bool(inst) is expected_val
     inst.has_detection.assert_called_once_with()
 
@@ -263,7 +263,7 @@ def test_property_uuid() -> None:
     """
     Test that given UUID hashable is returned via `uuid` property.
     """
-    expected_uuid = 0
+    expected_uuid: Union[str, int] = 0
     assert DummyDetectionElement(expected_uuid).uuid == expected_uuid
 
     expected_uuid = 'a hashable string'

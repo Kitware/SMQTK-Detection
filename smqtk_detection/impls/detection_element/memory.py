@@ -25,9 +25,9 @@ class MemoryDetectionElement (DetectionElement):  # lgtm[py/missing-equals]
     def __init__(self, uuid: Hashable) -> None:
         super(MemoryDetectionElement, self).__init__(uuid)
         #: :type: None | AxisAlignedBoundingBox
-        self._bbox = None
+        self._bbox: Optional[AxisAlignedBoundingBox] = None
         #: :type: None | ClassificationElement
-        self._classification = None
+        self._classification: Optional[ClassificationElement] = None
 
     def __getstate__(self) -> dict:
         return {

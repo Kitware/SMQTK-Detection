@@ -1,10 +1,11 @@
 import unittest.mock as mock
 import numpy
-from typing import Any, Dict
+from typing import Any, Dict, Iterator, Tuple, Hashable
 
 from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
 from smqtk_image_io.interfaces.image_reader import ImageReader
 from smqtk_dataprovider.interfaces.data_element import DataElement
+from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
 #@mock.patch('smqtk_detection.interfaces.object_detector'
@@ -44,7 +45,7 @@ def test_config_cycle()  -> None:
             """ stub to be mocked """
             return super(MockIMOD, self).get_config()
 
-        def _detect_objects_matrix(self, mat: numpy.ndarray) -> None:
+        def _detect_objects_matrix(self, mat: numpy.ndarray) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
             """ stub to be mocked """
             raise NotImplementedError()
 
@@ -54,7 +55,7 @@ def test_config_cycle()  -> None:
             t_imgreader_value = 'imma image reader'
 
             # noinspection PyTypeChecker
-            inst = MockIMOD(t_imgreader_value)
+            inst = MockIMOD(t_imgreader_value) #type: ignore
 
             m_tcd_return_value = 'expected tcd return value'
             m_tcd.return_value = m_tcd_return_value
