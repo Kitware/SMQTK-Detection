@@ -37,11 +37,12 @@ class DummyDetectionElement (DetectionElement):
     def __setstate__(self, state: Dict[Any, Any]) -> None:
         raise NotImplementedError()
 
-    def has_detection(# type: ignore
-        self) -> bool:
+    def has_detection(  # type: ignore
+            self) -> bool:
         raise NotImplementedError()
 
-    def set_detection(self, bbox: AxisAlignedBoundingBox, classification_element: ClassificationElement) -> DetectionElement:
+    def set_detection(self, bbox: AxisAlignedBoundingBox,
+                      classification_element: ClassificationElement) -> DetectionElement:
         raise NotImplementedError()
 
     def get_bbox(self) -> None:
@@ -50,8 +51,8 @@ class DummyDetectionElement (DetectionElement):
     def get_classification(self) -> None:
         raise NotImplementedError()
 
-    def get_detection(# type: ignore
-        self) -> Tuple[AxisAlignedBoundingBox, ClassificationElement]:
+    def get_detection(  # type: ignore
+            self) -> Tuple[AxisAlignedBoundingBox, ClassificationElement]:
         raise NotImplementedError()
 
 
@@ -78,7 +79,6 @@ def test_get_default_config_override() -> None:
     assert 'uuid' not in default
 
 
-#@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_override_mdFalse() -> None:
     """
     Test that ``from_config`` appropriately passes runtime-provided UUID value.
@@ -93,12 +93,11 @@ def test_from_config_override_mdFalse() -> None:
         }
 
         DetectionElement.from_config(given_conf, expected_uuid,
-                                 merge_default=False)
+                                     merge_default=False)
         m_confFromConfig.assert_called_once_with(expected_conf,
-                                             merge_default=False)
+                                                 merge_default=False)
 
 
-#@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_override_mdTrue() -> None:
     """
     Test that ``from_config`` appropriately passes runtime-provided UUID value.
@@ -111,12 +110,11 @@ def test_from_config_override_mdTrue() -> None:
         }
 
         DetectionElement.from_config(given_conf, expected_uuid,
-                                 merge_default=True)
+                                     merge_default=True)
         m_confFromConfig.assert_called_once_with(expected_conf,
-                                             merge_default=False)
+                                                 merge_default=False)
 
 
-#@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_uuid_preseed_mdFalse() -> None:
     """
     Test that UUID provided at runtime prevails over any UUID provided
@@ -132,12 +130,11 @@ def test_from_config_uuid_preseed_mdFalse() -> None:
         }
 
         DetectionElement.from_config(given_conf, expected_uuid,
-                                 merge_default=False)
+                                     merge_default=False)
         m_confFromConfig.assert_called_once_with(expected_conf,
-                                             merge_default=False)
+                                                 merge_default=False)
 
 
-#@mock.patch('smqtk_core.configuration.Configurable.from_config')
 def test_from_config_uuid_preseed_mdTrue() -> None:
     """
     Test that UUID provided at runtime prevails over any UUID provided
@@ -153,9 +150,9 @@ def test_from_config_uuid_preseed_mdTrue() -> None:
         }
 
         DetectionElement.from_config(given_conf, expected_uuid,
-                                 merge_default=True)
+                                     merge_default=True)
         m_confFromConfig.assert_called_once_with(expected_conf,
-                                             merge_default=False)
+                                                 merge_default=False)
 
 
 def test_hash() -> None:
@@ -172,7 +169,7 @@ def test_eq_both_no_detections() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = d2.get_detection = mock.MagicMock(side_effect=NoDetectionError) # type: ignore
+    d1.get_detection = d2.get_detection = mock.MagicMock(side_effect=NoDetectionError)  # type: ignore
     assert (d1 == d2) is False
     assert (d2 == d1) is False
     assert (d1 != d2) is True
@@ -185,9 +182,9 @@ def test_eq_one_no_detection() -> None:
     NOT equal.
     """
     d_without = DummyDetectionElement(0)
-    d_without.get_detection = mock.MagicMock(side_effect=NoDetectionError) # type: ignore
+    d_without.get_detection = mock.MagicMock(side_effect=NoDetectionError)  # type: ignore
     d_with = DummyDetectionElement(1)
-    d_with.get_detection = mock.MagicMock(return_value=(1, 2)) # type: ignore
+    d_with.get_detection = mock.MagicMock(return_value=(1, 2))  # type: ignore
 
     assert (d_with == d_without) is False
     assert (d_without == d_with) is False
@@ -202,8 +199,8 @@ def test_eq_unequal_detections() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
-    d2.get_detection = mock.Mock(return_value=('b', 2)) # type: ignore
+    d1.get_detection = mock.Mock(return_value=('a', 1))  # type: ignore
+    d2.get_detection = mock.Mock(return_value=('b', 2))  # type: ignore
     assert (d1 == d2) is False
 
 
@@ -215,12 +212,12 @@ def test_eq_unequal_just_one() -> None:
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
 
-    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
-    d2.get_detection = mock.Mock(return_value=('a', 2)) # type: ignore
+    d1.get_detection = mock.Mock(return_value=('a', 1))  # type: ignore
+    d2.get_detection = mock.Mock(return_value=('a', 2))  # type: ignore
     assert (d1 == d2) is False
 
-    d1.get_detection = mock.Mock(return_value=('a', 1)) # type: ignore
-    d2.get_detection = mock.Mock(return_value=('b', 1)) # type: ignore
+    d1.get_detection = mock.Mock(return_value=('a', 1))  # type: ignore
+    d2.get_detection = mock.Mock(return_value=('b', 1))  # type: ignore
     assert (d1 == d2) is False
 
 
@@ -231,7 +228,7 @@ def test_eq_success() -> None:
     """
     d1 = DummyDetectionElement(0)
     d2 = DummyDetectionElement(1)
-    d1.get_detection = d2.get_detection = mock.MagicMock(return_value=('a', 0)) # type: ignore
+    d1.get_detection = d2.get_detection = mock.MagicMock(return_value=('a', 0))  # type: ignore
     assert d1 == d2
 
 
@@ -242,7 +239,7 @@ def test_nonzero_has_detection() -> None:
     """
     expected_val = True
     inst = DummyDetectionElement(0)
-    inst.has_detection = mock.MagicMock(return_value=expected_val) # type: ignore
+    inst.has_detection = mock.MagicMock(return_value=expected_val)  # type: ignore
     assert bool(inst) is expected_val
     inst.has_detection.assert_called_once_with()
 
@@ -254,7 +251,7 @@ def test_nonzero_no_detection() -> None:
     """
     expected_val = False
     inst = DummyDetectionElement(0)
-    inst.has_detection = mock.MagicMock(return_value=expected_val) # type: ignore
+    inst.has_detection = mock.MagicMock(return_value=expected_val)  # type: ignore
     assert bool(inst) is expected_val
     inst.has_detection.assert_called_once_with()
 

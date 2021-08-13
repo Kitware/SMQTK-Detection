@@ -245,7 +245,7 @@ def test_set_detection_invalid_bbox() -> None:
                                          r"AxisAlignedBoundingBox instance\. "
                                          r"Given 'not bbox' \(type=str\)\."):
         # noinspection PyTypeChecker
-        MemoryDetectionElement(0).set_detection(bbox, c_elem) # type: ignore
+        MemoryDetectionElement(0).set_detection(bbox, c_elem)  # type: ignore
 
 
 def test_set_detection_invalid_classification_element() -> None:
@@ -261,7 +261,7 @@ def test_set_detection_invalid_classification_element() -> None:
                              r"instance\. Given 'not a classification element' "
                              r"\(type=str\)\."):
         # noinspection PyTypeChecker
-        MemoryDetectionElement(0).set_detection(bbox, c_elem) # type: ignore
+        MemoryDetectionElement(0).set_detection(bbox, c_elem)  # type: ignore
 
 
 def test_set_detection_empty_classification_element() -> None:

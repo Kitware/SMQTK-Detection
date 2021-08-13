@@ -7,7 +7,7 @@ from smqtk_core.configuration import (
     make_default_config,
 )
 from smqtk_core.dict import merge_dict
-from typing import Type, Hashable
+from typing import Type, Hashable, TypeVar
 
 
 class DetectionElementFactory (Configurable):

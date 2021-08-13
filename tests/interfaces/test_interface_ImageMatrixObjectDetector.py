@@ -8,14 +8,11 @@ from smqtk_dataprovider.interfaces.data_element import DataElement
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
-#@mock.patch('smqtk_detection.interfaces.object_detector'
-#            '.make_default_config')
 def test_get_default_config() -> None:
     """
     Test configuration default generation
     """
-    with mock.patch('smqtk_detection.interfaces.object_detector'
-            '.make_default_config') as m_mdc:
+    with mock.patch('smqtk_detection.interfaces.object_detector.make_default_config') as m_mdc:
         m_mdc_return_value = "make default expected return"
         m_mdc.return_value = m_mdc_return_value
 
@@ -26,17 +23,12 @@ def test_get_default_config() -> None:
         }
 
 
-#@mock.patch('smqtk_detection.interfaces.object_detector'
-#            '.from_config_dict')
-#@mock.patch('smqtk_detection.interfaces.object_detector'
-#            '.to_config_dict')
-def test_config_cycle()  -> None:
+def test_config_cycle() -> None:
     """
     Test that get_config/from_config cycle results in instance with same
     appropriate attribute reflection.
     """
     class MockIMOD (ImageMatrixObjectDetector):
-
         @classmethod
         def is_usable(cls) -> bool:
             return True
@@ -45,7 +37,8 @@ def test_config_cycle()  -> None:
             """ stub to be mocked """
             return super(MockIMOD, self).get_config()
 
-        def _detect_objects_matrix(self, mat: numpy.ndarray) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
+        def _detect_objects_matrix(self, mat: numpy.ndarray) -> \
+                Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
             """ stub to be mocked """
             raise NotImplementedError()
 
@@ -55,7 +48,7 @@ def test_config_cycle()  -> None:
             t_imgreader_value = 'imma image reader'
 
             # noinspection PyTypeChecker
-            inst = MockIMOD(t_imgreader_value) #type: ignore
+            inst = MockIMOD(t_imgreader_value)  # type: ignore
 
             m_tcd_return_value = 'expected tcd return value'
             m_tcd.return_value = m_tcd_return_value
@@ -71,7 +64,7 @@ def test_config_cycle()  -> None:
             assert m_tcd.call_count == 2
             m_tcd.assert_any_call(t_imgreader_value)
             m_fcd.assert_called_once_with(m_tcd_return_value,
-                                      ImageReader.get_impls())
+                                          ImageReader.get_impls())
             m_tcd.assert_any_call(m_fcd_return_value)
             assert inst_config == inst2_config
 

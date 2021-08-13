@@ -6,7 +6,6 @@ import numpy
 from smqtk_core import Plugfigurable
 
 from typing import TypeVar, Type, Union, Optional, List, Any
-A = TypeVar("A", bound="AxisAlignedBoundingBox")
 
 
 class AxisAlignedBoundingBox (Plugfigurable):

@@ -15,15 +15,14 @@ def test_get_default_config() -> None:
     assert 'type' in c
 
 
-#@mock.patch.object(DetectionElementFactory, '__init__')
-#@mock.patch.object(DetectionElementFactory, 'get_default_config')
-#@mock.patch.object(DetectionElement, 'get_impls')
 def test_from_config_no_merge() -> None:
     """
     Test that ``from_config`` appropriately constructs a factory instance
     without merging a default configuration.
     """
-    with mock.patch.object(DetectionElementFactory, '__init__') as m_def_init, mock.patch.object(DetectionElementFactory, 'get_default_config') as m_def_get_default_config, mock.patch.object(DetectionElement, 'get_impls') as m_de_get_impls:
+    with mock.patch.object(DetectionElementFactory, '__init__') as m_def_init, \
+            mock.patch.object(DetectionElementFactory, 'get_default_config') as m_def_get_default_config, \
+            mock.patch.object(DetectionElement, 'get_impls') as m_de_get_impls:
         # Because __init__ needs to return None
         m_def_init.return_value = None
 
@@ -44,32 +43,31 @@ def test_from_config_no_merge() -> None:
             f'{__name__}.T2': {'y': 'y'},
         }
         m_def_get_default_config.return_value = expected_default_conf
-    
+
         # Test configuration we are passing to ``from_config``.
         test_config = {'type': f'{__name__}.T2',
                        f'{__name__}.T2': {'a': 1, 'b': 'c'}}
-    
+
         # Because we are not merging default config, we expect only the contents
         # of the passed config to reach the factory constructor.
         expected_type = T2
         expected_conf = {'a': 1, 'b': 'c'}
-    
+
         DetectionElementFactory.from_config(test_config, merge_default=False)
-    
+
         m_def_get_default_config.assert_not_called()
         m_de_get_impls.assert_called_once()
         m_def_init.assert_called_once_with(expected_type, expected_conf)
 
 
-#@mock.patch.object(DetectionElementFactory, '__init__')
-#@mock.patch.object(DetectionElementFactory, 'get_default_config')
-#@mock.patch.object(DetectionElement, 'get_impls')
 def test_from_config_with_merge() -> None:
     """
     Test that ``from_config`` appropriately constructs a factory instance
     after merging the default configuration.
     """
-    with mock.patch.object(DetectionElementFactory, '__init__') as m_def_init, mock.patch.object(DetectionElementFactory, 'get_default_config') as m_def_get_default_config, mock.patch.object(DetectionElement, 'get_impls') as m_de_get_impls: 
+    with mock.patch.object(DetectionElementFactory, '__init__') as m_def_init, \
+            mock.patch.object(DetectionElementFactory, 'get_default_config') as m_def_get_default_config, \
+            mock.patch.object(DetectionElement, 'get_impls') as m_de_get_impls:
         # Because __init__ needs to return None
         m_def_init.return_value = None
 
@@ -91,7 +89,7 @@ def test_from_config_with_merge() -> None:
             f'{__name__}.T2': {'y': 'y'},
         }
         m_def_get_default_config.return_value = expected_default_conf
-    
+
         # Partial configuration to pass to ``from_config``.
         test_config = {'type': f'{__name__}.T2',
                        f'{__name__}.T2': {'a': 1, 'b': 'c'}}
@@ -100,7 +98,7 @@ def test_from_config_with_merge() -> None:
         # merged into it.
         expected_type = T2
         expected_conf = {'a': 1, 'b': 'c', 'y': 'y'}
-    
+
         DetectionElementFactory.from_config(test_config, merge_default=True)
 
         m_def_get_default_config.assert_called_once()

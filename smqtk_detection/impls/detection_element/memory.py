@@ -24,7 +24,7 @@ class MemoryDetectionElement (DetectionElement):  # lgtm[py/missing-equals]
 
     def __init__(self, uuid: Hashable) -> None:
         super(MemoryDetectionElement, self).__init__(uuid)
-        #: :type: None | AxisAlignedBoundingBox
+        #: :type: None | AxisAlignedMemoryDetectionElementBoundingBox
         self._bbox: Optional[AxisAlignedBoundingBox] = None
         #: :type: None | ClassificationElement
         self._classification: Optional[ClassificationElement] = None
@@ -80,7 +80,9 @@ class MemoryDetectionElement (DetectionElement):  # lgtm[py/missing-equals]
                                    .format(self.uuid))
         return self._bbox, self._classification
 
-    def set_detection(self, bbox: Optional[AxisAlignedBoundingBox], classification_element: Optional[ClassificationElement]) -> MemoryDetectionElement:
+    def set_detection(self, bbox: Optional[AxisAlignedBoundingBox],
+                      classification_element: Optional[ClassificationElement]) -> \
+            MemoryDetectionElement:
         if not isinstance(bbox, AxisAlignedBoundingBox):
             raise ValueError("Provided an invalid AxisAlignedBoundingBox "
                              "instance. Given '{}' (type={})."
