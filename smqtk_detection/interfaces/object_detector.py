@@ -178,7 +178,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         return default
 
     @classmethod
-    def from_config(cls, config_dict: dict, merge_default: bool = True) -> ImageMatrixObjectDetector:
+    def from_config(cls, config_dict: dict, merge_default: bool = True) -> "ImageMatrixObjectDetector":
         """
         Instantiate a new instance of this class given the configuration
         JSON-compliant dictionary encapsulating initialization arguments.

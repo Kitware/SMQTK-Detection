@@ -5,7 +5,7 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
-from typing import TypeVar, Type, Union, Optional, List, Any
+from typing import Type, Union, Optional, List, Any
 
 
 class AxisAlignedBoundingBox (Plugfigurable):
@@ -128,7 +128,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
             'max_vertex': self.max_vertex.tolist(),
         }
 
-    def intersection(self, other: Type[AxisAlignedBoundingBox]) -> Optional[AxisAlignedBoundingBox]:
+    def intersection(self, other: Type["AxisAlignedBoundingBox"]) -> Optional["AxisAlignedBoundingBox"]:
         """
         Get the AxisAlignedBoundingBox that represents the intersection between
         this box and the given ``other`` box.

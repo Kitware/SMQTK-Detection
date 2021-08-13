@@ -7,7 +7,7 @@ from smqtk_core.configuration import (
     make_default_config,
 )
 from smqtk_core.dict import merge_dict
-from typing import Type, Hashable, TypeVar
+from typing import Type, Hashable
 
 
 class DetectionElementFactory (Configurable):
@@ -24,7 +24,7 @@ class DetectionElementFactory (Configurable):
         return make_default_config(DetectionElement.get_impls())
 
     @classmethod
-    def from_config(cls, config_dict: dict, merge_default: bool = True) -> DetectionElementFactory:
+    def from_config(cls, config_dict: dict, merge_default: bool = True) -> "DetectionElementFactory":
         # Override from Configurable
         if merge_default:
             config_dict = merge_dict(cls.get_default_config(), config_dict)

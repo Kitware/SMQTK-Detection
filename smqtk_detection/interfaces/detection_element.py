@@ -6,7 +6,7 @@ from smqtk_core.dict import merge_dict
 from typing import Hashable
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 from smqtk_classifier.interfaces.classification_element import ClassificationElement
-from typing import Dict, Any, Tuple, TypeVar, Type, Optional
+from typing import Dict, Any, Tuple, Type, Optional
 
 
 class DetectionElement (Plugfigurable):
@@ -27,11 +27,11 @@ class DetectionElement (Plugfigurable):
     # noinspection PyMethodOverriding
     @classmethod
     def from_config(  # type: ignore
-            cls: Type[DetectionElement],
+            cls: Type["DetectionElement"],
             config_dict: Dict[Any, Any],
             uuid: Hashable,
             merge_default: bool = True
-            ) -> DetectionElement:
+            ) -> "DetectionElement":
         """
         Override of
         :meth:`smqtk.utils.configuration.Configurable.from_config` with the
@@ -180,7 +180,8 @@ class DetectionElement (Plugfigurable):
         """
 
     @abc.abstractmethod
-    def set_detection(self, bbox: AxisAlignedBoundingBox, classification_element: ClassificationElement) -> DetectionElement:
+    def set_detection(self, bbox: AxisAlignedBoundingBox, classification_element: ClassificationElement) \
+            -> "DetectionElement":
         """
         Set a bounding box and classification element to this detection
         element.

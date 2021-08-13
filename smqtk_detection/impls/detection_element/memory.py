@@ -82,7 +82,7 @@ class MemoryDetectionElement (DetectionElement):  # lgtm[py/missing-equals]
 
     def set_detection(self, bbox: Optional[AxisAlignedBoundingBox],
                       classification_element: Optional[ClassificationElement]) -> \
-            MemoryDetectionElement:
+            "MemoryDetectionElement":
         if not isinstance(bbox, AxisAlignedBoundingBox):
             raise ValueError("Provided an invalid AxisAlignedBoundingBox "
                              "instance. Given '{}' (type={})."
