@@ -7,6 +7,7 @@ from smqtk_core.configuration import (
     make_default_config,
 )
 from smqtk_core.dict import merge_dict
+from typing import Type, Hashable
 
 
 class DetectionElementFactory (Configurable):
@@ -18,12 +19,12 @@ class DetectionElementFactory (Configurable):
     __slots__ = ('_elem_type', '_elem_config')
 
     @classmethod
-    def get_default_config(cls):
+    def get_default_config(cls) -> dict:
         # Override from Configurable
         return make_default_config(DetectionElement.get_impls())
 
     @classmethod
-    def from_config(cls, config_dict, merge_default=True):
+    def from_config(cls, config_dict: dict, merge_default: bool = True) -> "DetectionElementFactory":
         # Override from Configurable
         if merge_default:
             config_dict = merge_dict(cls.get_default_config(), config_dict)
@@ -33,7 +34,7 @@ class DetectionElementFactory (Configurable):
         )
         return DetectionElementFactory(elem_type, elem_conf)
 
-    def __init__(self, elem_type, elem_config):
+    def __init__(self, elem_type: Type[DetectionElement], elem_config: dict) -> None:
         """
         Initialize the factory to produce DetectionElement instance of the
         given type and configuration.
@@ -48,10 +49,10 @@ class DetectionElementFactory (Configurable):
         self._elem_type = elem_type
         self._elem_config = elem_config
 
-    def get_config(self):
+    def get_config(self) -> dict:
         return cls_conf_to_config_dict(self._elem_type, self._elem_config)
 
-    def new_detection(self, uuid):
+    def new_detection(self, uuid: Hashable) -> DetectionElement:
         """
         Create a new DetectionElement instance o the configured implementation.
 
