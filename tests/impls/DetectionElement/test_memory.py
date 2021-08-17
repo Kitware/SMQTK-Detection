@@ -13,12 +13,12 @@ from smqtk_detection.impls.detection_element.memory \
 from smqtk_core.configuration import configuration_test_helper
 
 
-def test_is_usable():
+def test_is_usable() -> None:
     """ Test that memory impl is usable (should always be). """
     assert MemoryDetectionElement.is_usable() is True
 
 
-def test_serialize_deserialize_pickle():
+def test_serialize_deserialize_pickle() -> None:
     """
     Test that serialization and the deserialization of a
     MemoryDetectionElement instance with populated detection components
@@ -50,14 +50,14 @@ def test_serialize_deserialize_pickle():
     assert e2_ce.get_classification() == expected_ce_map
 
 
-def test_get_config():
+def test_get_config() -> None:
     """ Test that configuration for memory element is empty. """
     inst = MemoryDetectionElement(0)
     for i in configuration_test_helper(inst, {'uuid'}, (0,)):  # type: MemoryDetectionElement
         assert i.uuid == 0
 
 
-def test_has_detection():
+def test_has_detection() -> None:
     """
     Test that has_detection is true for True-evaluating attributes
     """
@@ -70,7 +70,7 @@ def test_has_detection():
     assert inst.has_detection() is True
 
 
-def test_has_detection_none_members():
+def test_has_detection_none_members() -> None:
     """
     Test that has_detection is false when neither bbox nor classification
     are set.
@@ -80,7 +80,7 @@ def test_has_detection_none_members():
     assert inst.has_detection() is False
 
 
-def test_has_detection_one_none_member():
+def test_has_detection_one_none_member() -> None:
     """
     Test that has_detections is false if at least one of the members is None.
     """
@@ -99,7 +99,7 @@ def test_has_detection_one_none_member():
     assert inst.has_detection() is False
 
 
-def test_has_detection_empty_classification_element():
+def test_has_detection_empty_classification_element() -> None:
     """
     Test that when one or both attributes are false-evaluating but not None,
     has_detection returns false.
@@ -116,7 +116,7 @@ def test_has_detection_empty_classification_element():
     assert inst.has_detection() is False
 
 
-def test_get_bbox():
+def test_get_bbox() -> None:
     """ Test successfully getting the detection bounding box. """
     bbox = mock.MagicMock(spec_set=AxisAlignedBoundingBox)
     inst = MemoryDetectionElement(0)
@@ -124,7 +124,7 @@ def test_get_bbox():
     assert inst.get_bbox() == bbox
 
 
-def test_get_bbox_no_bbox():
+def test_get_bbox_no_bbox() -> None:
     """ Test attempting to get a bbox when none is set. """
     inst = MemoryDetectionElement(0)
     with pytest.raises(NoDetectionError,
@@ -133,7 +133,7 @@ def test_get_bbox_no_bbox():
         inst.get_bbox()
 
 
-def test_get_classification():
+def test_get_classification() -> None:
     """ Test successfully getting the detection classification element. """
     c_elem = mock.MagicMock(spec_set=ClassificationElement)
     # Simulate a populated ClassificationElement
@@ -143,7 +143,7 @@ def test_get_classification():
     assert inst.get_classification() == c_elem
 
 
-def test_get_classification_no_classification():
+def test_get_classification_no_classification() -> None:
     """ Test attempting to get the classification element when none is set. """
     inst = MemoryDetectionElement(0)
     with pytest.raises(NoDetectionError,
@@ -152,7 +152,7 @@ def test_get_classification_no_classification():
         inst.get_classification()
 
 
-def test_get_classification_empty_classification():
+def test_get_classification_empty_classification() -> None:
     """ Test attempting to get the classification element when it is empty. """
     c_elem = mock.MagicMock(spec_set=ClassificationElement)
     # Simulate an empty ClassificationElement
@@ -166,7 +166,7 @@ def test_get_classification_empty_classification():
         inst.get_classification()
 
 
-def test_get_detection():
+def test_get_detection() -> None:
     """ Test successfully getting the detection components. """
     bbox = mock.MagicMock(spec_set=AxisAlignedBoundingBox)
     c_elem = mock.MagicMock(spec_set=ClassificationElement)
@@ -179,7 +179,7 @@ def test_get_detection():
     assert inst.get_detection() == (bbox, c_elem)
 
 
-def test_get_detection_error_on_empty():
+def test_get_detection_error_on_empty() -> None:
     """
     Test that a NoDetectionError is raised when the detection element has
     not been set to yet.
@@ -192,7 +192,7 @@ def test_get_detection_error_on_empty():
         inst.get_detection()
 
 
-def test_get_detection_error_empty_classification():
+def test_get_detection_error_empty_classification() -> None:
     """
     Test that NoDetectionError is raised when the classification element is
     false-evaluating.
@@ -213,7 +213,7 @@ def test_get_detection_error_empty_classification():
         inst.get_detection()
 
 
-def test_set_detection():
+def test_set_detection() -> None:
     """
     Test successfully setting a bounding box and classification element.
     """
@@ -232,7 +232,7 @@ def test_set_detection():
     assert r is d_elem, "set_detection return was not self"
 
 
-def test_set_detection_invalid_bbox():
+def test_set_detection_invalid_bbox() -> None:
     """
     Test that an exception is raise when a valid bounding box was
     not provided.
@@ -245,10 +245,10 @@ def test_set_detection_invalid_bbox():
                                          r"AxisAlignedBoundingBox instance\. "
                                          r"Given 'not bbox' \(type=str\)\."):
         # noinspection PyTypeChecker
-        MemoryDetectionElement(0).set_detection(bbox, c_elem)
+        MemoryDetectionElement(0).set_detection(bbox, c_elem)  # type: ignore
 
 
-def test_set_detection_invalid_classification_element():
+def test_set_detection_invalid_classification_element() -> None:
     """
     Test that an exception is raised when a valid classification element was
     not provided.
@@ -261,10 +261,10 @@ def test_set_detection_invalid_classification_element():
                              r"instance\. Given 'not a classification element' "
                              r"\(type=str\)\."):
         # noinspection PyTypeChecker
-        MemoryDetectionElement(0).set_detection(bbox, c_elem)
+        MemoryDetectionElement(0).set_detection(bbox, c_elem)  # type: ignore
 
 
-def test_set_detection_empty_classification_element():
+def test_set_detection_empty_classification_element() -> None:
     """
     Test that exception is raised when the provided classification element
     is empty (no contents in classification map).

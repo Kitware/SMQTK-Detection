@@ -2,6 +2,9 @@
 PATHS-common.txt
 PATHS-detection.txt
 
+# Unit test / coverage reports
+coverage.xml
+
 ## Python auto-compiled files
 *.pyc
 *.pyo
