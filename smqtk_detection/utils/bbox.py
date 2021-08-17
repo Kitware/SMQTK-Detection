@@ -166,7 +166,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         """
         Get the lengths of this bounding box's edges along its dimensions.
 
-        I.e. if this bounding box is 2-dimensional, this returns the [width,
+        ImMatObDet.e. if this bounding box is 2-dimensional, this returns the [width,
         height] of the bounding box.
 
         :return: Array of dimension deltas.

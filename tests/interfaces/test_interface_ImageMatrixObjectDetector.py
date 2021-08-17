@@ -42,31 +42,31 @@ def test_config_cycle() -> None:
             """ stub to be mocked """
             raise NotImplementedError()
 
-    with mock.patch('smqtk_detection.interfaces.object_detector.to_config_dict') as m_tcd:
-        with mock.patch('smqtk_detection.interfaces.object_detector.from_config_dict') as m_fcd:
+    with mock.patch('smqtk_detection.interfaces.object_detector.to_config_dict') as m_tcd, \
+            mock.patch('smqtk_detection.interfaces.object_detector.from_config_dict') as m_fcd:
 
-            t_imgreader_value = 'imma image reader'
+        t_imgreader_value = 'imma image reader'
 
-            # noinspection PyTypeChecker
-            inst = MockIMOD(t_imgreader_value)  # type: ignore
+        # noinspection PyTypeChecker
+        inst = MockIMOD(t_imgreader_value)  # type: ignore
 
-            m_tcd_return_value = 'expected tcd return value'
-            m_tcd.return_value = m_tcd_return_value
+        m_tcd_return_value = 'expected tcd return value'
+        m_tcd.return_value = m_tcd_return_value
 
-            m_fcd_return_value = 'expected fcd return value'
-            m_fcd.return_value = m_fcd_return_value
+        m_fcd_return_value = 'expected fcd return value'
+        m_fcd.return_value = m_fcd_return_value
 
-            # Test running the cycle
-            inst_config = inst.get_config()
-            inst2 = MockIMOD.from_config(inst_config)
-            inst2_config = inst2.get_config()
+        # Test running the cycle
+        inst_config = inst.get_config()
+        inst2 = MockIMOD.from_config(inst_config)
+        inst2_config = inst2.get_config()
 
-            assert m_tcd.call_count == 2
-            m_tcd.assert_any_call(t_imgreader_value)
-            m_fcd.assert_called_once_with(m_tcd_return_value,
-                                          ImageReader.get_impls())
-            m_tcd.assert_any_call(m_fcd_return_value)
-            assert inst_config == inst2_config
+        assert m_tcd.call_count == 2
+        m_tcd.assert_any_call(t_imgreader_value)
+        m_fcd.assert_called_once_with(m_tcd_return_value,
+                                      ImageReader.get_impls())
+        m_tcd.assert_any_call(m_fcd_return_value)
+        assert inst_config == inst2_config
 
 
 def test_valid_content_types() -> None:

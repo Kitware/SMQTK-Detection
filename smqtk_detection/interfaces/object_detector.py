@@ -4,7 +4,7 @@ import hashlib
 import six
 import numpy
 
-from typing import Hashable, Set, Iterator, Dict, Tuple, Any
+from typing import Hashable, Set, Iterator, Dict, Tuple, Any, Type, TypeVar
 
 from smqtk_core import Plugfigurable
 from smqtk_image_io.interfaces.image_reader import ImageReader
@@ -12,7 +12,7 @@ from smqtk_dataprovider import ContentTypeValidator
 from smqtk_core.configuration import (
     make_default_config,
     from_config_dict,
-    to_config_dict,
+    to_config_dict
 )
 
 from smqtk_classifier._defaults import DFLT_CLASSIFIER_FACTORY
@@ -24,6 +24,8 @@ from smqtk_detection.detection_element_factory \
     import DetectionElementFactory
 from smqtk_dataprovider.interfaces.data_element import DataElement
 from smqtk_classifier.classification_element_factory import ClassificationElementFactory
+
+ImMatObDet = TypeVar("ImMatObDet", bound="ImageMatrixObjectDetector")
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -178,7 +180,11 @@ class ImageMatrixObjectDetector (ObjectDetector):
         return default
 
     @classmethod
-    def from_config(cls, config_dict: dict, merge_default: bool = True) -> "ImageMatrixObjectDetector":
+    def from_config(  # type: ignore
+            cls: Type[ImMatObDet],
+            config_dict: dict,
+            merge_default: bool = True
+    ) -> ImMatObDet:
         """
         Instantiate a new instance of this class given the configuration
         JSON-compliant dictionary encapsulating initialization arguments.
@@ -198,7 +204,7 @@ class ImageMatrixObjectDetector (ObjectDetector):
         :rtype: ImageMatrixObjectDetector
         """
         # Shallow copy
-        config_dict = config_dict
+        config_dict = dict(config_dict)
 
         config_dict['image_reader'] = from_config_dict(
             config_dict.get('image_reader', {}), ImageReader.get_impls()
