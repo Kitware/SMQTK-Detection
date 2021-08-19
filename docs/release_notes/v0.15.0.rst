@@ -1,0 +1,15 @@
+v0.15.0
+=======
+
+
+Updates / New Features
+----------------------
+  
+CI
+ 
+* Add Github actions workflow for CI.
+  
+Misc.
+
+* Added the use of Poetry to the project.
+* Now standardize to using `Poetry`_ for environment/build/publish management.
