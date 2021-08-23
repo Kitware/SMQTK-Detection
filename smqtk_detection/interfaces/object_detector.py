@@ -69,17 +69,21 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
             ''.join(sorted(map(str, labels)))
         return hashlib.sha1(six.b(hashable)).hexdigest()
 
-    def detect_objects(self, data_element: DataElement,
-                       de_factory: DetectionElementFactory = DFLT_DETECTION_FACTORY,
-                       ce_factory: ClassificationElementFactory = DFLT_CLASSIFIER_FACTORY) \
-            -> Iterator[DetectionElement]:
+    def detect_objects(
+            self,
+            data_element: DataElement,
+            de_factory: DetectionElementFactory = DFLT_DETECTION_FACTORY,
+            ce_factory: ClassificationElementFactory = DFLT_CLASSIFIER_FACTORY
+    ) -> Iterator[DetectionElement]:
         """
         Detect objects in the given data.
 
         UUIDs of detections are based on the hash produced from the combination
         of:
-            - Detection bounding-box bounding coordinates
-            - Classification label set predicted for a bounding box.
+
+        - Detection bounding-box bounding coordinates
+
+        - Classification label set predicted for a bounding box.
 
         :param smqtk.representation.DataElement data_element:
             Source data from which to detect objects within.
