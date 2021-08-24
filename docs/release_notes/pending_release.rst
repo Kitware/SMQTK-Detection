@@ -1,5 +1,5 @@
 Pending Release Notes
-===========================
+=====================
 
 
 Updates / New Features
@@ -11,6 +11,7 @@ CI
 Misc.
 
 * Updated various type annotations for type-checking compliance.
+
 * Updated .gitignore away from the old monorepo version.
 
 Fixes
