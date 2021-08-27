@@ -14,5 +14,7 @@ Misc.
 
 * Updated .gitignore away from the old monorepo version.
 
+* Added readthedocs conf files
+
 Fixes
 -----
