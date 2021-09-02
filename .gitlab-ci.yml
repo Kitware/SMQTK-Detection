@@ -4,7 +4,7 @@ stages:
 # Global default parameters set for all jobs unless overridden by job-specific
 # configuration.
 default:
-  image: python:3.6-buster
+  image: python:3.9-buster
   interruptible: true
 
 # Global default variables set for all jobs unless overridden by job-specific
@@ -13,85 +13,91 @@ variables:
   LC_ALL: "C.UTF-8"
   LANG: "C.UTF-8"
 
-# Common job specification not otherwise specifiable in the `default` section
-# above.
+
+###############################################################################
+# Run Conditions
+#
+
+# Run rules to activate at the major junction points: merge requests, tag
+# pipelines and branch pipelines for masters.
+.run_automatically:
+  rules:
+    - if: $CI_MERGE_REQUEST_IID
+      when: on_success
+    - if: $CI_COMMIT_TAG
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+    - when: never  # explicit fail-exclude terminal condition.
+
+# Rules for running
+# TODO: When moving to enforcing forky workflow, this will not be necessary.
+.run_on_masters:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: on_success
+    - when: never
+
+
+###############################################################################
+# Jobs -- Testing
+
 .test_job_defaults:
+  extends: .run_automatically
   stage: test
   tags:
     - linux
     - docker
     - test
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: on_success
-    - when: never  # explicit fail-exclude terminal condition.
+    - smqtk
+  before_script:
+    - export PATH=${HOME}/.local/bin:${PATH}
+    - pip install --user -U poetry
+    - command -v python
+    - python --version
+    - command -v pip
+    - pip --version
+    - command -v poetry
+    - poetry -V
+    - poetry install
 
-# Common setup script lines for test jobs
-.test_setup: &test_setup
-  - apt-get -y update
-  - python --version
-  - pip install -U pip
-  - pip install --use-feature=2020-resolver
-                -r requirements.txt
-                -e .
-
-
-###############################################################################
-# Jobs
-
-#build:
-#  stage: build
-#  script:
-#    - echo "Placeholder for any build operations required."
-
-test:build_docs:
+test:docs_build:
   extends: .test_job_defaults
   script:
-    - *test_setup  # expand `&test_setup` anchor above into here.
     - cd docs
-    - make html
+    - poetry run make html
     - stat _build/html/index.html
-
-test:py36:
-  extends: .test_job_defaults
-  script:
-    - *test_setup  # expand `&test_setup` anchor above into here.
-    - pytest --cov=smqtk --cov-config=.pytest.coveragerc
-
-test:py37:
-  extends: .test_job_defaults
-  image: python:3.7-buster
-  script:
-    - *test_setup  # expand `&test_setup` anchor above into here.
-    - pytest --cov=smqtk --cov-config=.pytest.coveragerc
-
-test:py38:
-  extends: .test_job_defaults
-  image: python:3.8-buster
-  script:
-    - *test_setup  # expand `&test_setup` anchor above into here.
-    - pytest --cov=smqtk --cov-config=.pytest.coveragerc
 
 test:lint:
   extends: .test_job_defaults
   script:
-    - *test_setup  # expand `&test_setup` anchor above into here.
-    - flake8
+    - poetry run flake8
 
 test:typecheck:
   extends: .test_job_defaults
   script:
-    - *test_setup
-    - mypy
+    - poetry run mypy
 
-test:added_a_change_note:
+test:unittests:
   extends: .test_job_defaults
+  parallel:
+    matrix:
+      - IMAGE: [
+          "python:3.6-buster",
+          "python:3.7-buster",
+          "python:3.8-buster",
+          "python:3.9-buster"
+        ]
+        # Extras for included, optional plugin support (space-separated lists)
+        OPT_EXTRA: [
+          "",  # no extras
+          "sklearn",
+        ]
+  image: $IMAGE
   script:
-    - TARGET=origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     - |
-      FOUND=$(git diff --name-status --diff-filter=d ${TARGET} HEAD | grep "^\w\s*docs/release_notes/pending" || echo "")
-      if [[ "$FOUND" = "" ]]
+      if [[ -n "$OPT_EXTRA" ]]
       then
-        echo "No \"pending_*\" change notes files have been modified. Please add a change note!"
-        exit 1
+        poetry install --extras "$OPT_EXTRA"
       fi
+    - poetry run pytest --cov=smqtk_detection --cov-config=.pytest.coveragerc

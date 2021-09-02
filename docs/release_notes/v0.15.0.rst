@@ -1,0 +1,26 @@
+v0.15.0
+=======
+
+This is the initial release of ``smqtk-detection``, spinning off from
+v0.14.0 of the monolithic `SMQTK`_ library.
+
+.. _smqtk: https://github.com/kitware/smqtk
+
+Updates / New Features
+----------------------
+CI
+
+* Added workflow for CI on GitHub.
+
+Misc.
+
+* Updated various type annotations for type-checking compliance.
+
+* Updated .gitignore away from the old monorepo version.
+
+* Added readthedocs conf files
+
+* Updated to use now publicly available ``smqtk-detection`` package from PYPI.
+
+Fixes
+-----
