@@ -368,7 +368,7 @@ use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -622,14 +622,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "types-six"
-version = "1.16.1"
-description = "Typing stubs for six"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "typing-extensions"
 version = "3.10.0.0"
 description = "Backported and Experimental Type Hints for Python 3.5+"
@@ -673,7 +665,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "12628ca7db30fcd50ae7bca6be5eb0f752b1d4c257ac967a3d6b67ca9a95e69f"
+content-hash = "e2d7bf1740e3bff7c2a1c4a0061a6f52bc8f0321db41692d0b14e511e6ff490f"
 
 [metadata.files]
 alabaster = [
@@ -1012,8 +1004,8 @@ smqtk-classifier = [
     {file = "smqtk_classifier-0.17.0.tar.gz", hash = "sha256:e0f21c4b3f2ca78abc21be340ca7c0d6ee2fc9ff88e07d332a15bd9d6993c004"},
 ]
 smqtk-core = [
-    {file = "smqtk-core-0.18.1.tar.gz", hash = "sha256:83737a636f4fdb25814cb075ec5e128d1d2d631a6b2466398e6ccef48c479d17"},
-    {file = "smqtk_core-0.18.1-py3-none-any.whl", hash = "sha256:4528c5f6f3b05c5c80e662defb37779d3b30f74e02582f0a30f5ee505632e4fd"},
+    {file = "smqtk-core-0.18.1-1.tar.gz", hash = "sha256:a3d71a9468c1efb642e3d7298c7d1cf6ce7f5bb302f63e0e20bc1150f8bbee7e"},
+    {file = "smqtk_core-0.18.1-1-py3-none-any.whl", hash = "sha256:2b497fe04a2ecb67b21abceffe1b30c876ebc2376cd65efd5fc0a330b1b24947"},
 ]
 smqtk-dataprovider = [
     {file = "smqtk_dataprovider-0.16.0-py3-none-any.whl", hash = "sha256:e7ac8b40e6d976ebb7396edc62fe1dfe3e29ba00dcc1912c1e092ae8638f5268"},
@@ -1147,10 +1139,6 @@ typed-ast = [
     {file = "typed_ast-1.4.3-cp39-cp39-win32.whl", hash = "sha256:209596a4ec71d990d71d5e0d312ac935d86930e6eecff6ccc7007fe54d703808"},
     {file = "typed_ast-1.4.3-cp39-cp39-win_amd64.whl", hash = "sha256:9c6d1a54552b5330bc657b7ef0eae25d00ba7ffe85d9ea8ae6540d2197a3788c"},
     {file = "typed_ast-1.4.3.tar.gz", hash = "sha256:fb1bbeac803adea29cedd70781399c99138358c26d05fcbd23c13016b7f5ec65"},
-]
-types-six = [
-    {file = "types-six-1.16.1.tar.gz", hash = "sha256:a9e6769cb0808f920958ac95f75c5191f49e21e041eac127fa62e286e1005616"},
-    {file = "types_six-1.16.1-py2.py3-none-any.whl", hash = "sha256:b14f5abe26c0997bd41a1a32d6816af25932f7bfbc54246dfdc8f6f6404fd1d4"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.0-py2-none-any.whl", hash = "sha256:0ac0f89795dd19de6b97debb0c6af1c70987fd80a2d62d1958f7e56fcc31b497"},

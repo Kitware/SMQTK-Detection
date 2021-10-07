@@ -1,7 +1,6 @@
 import abc
 import hashlib
 
-import six
 import numpy
 
 from typing import Hashable, Set, Iterator, Dict, Tuple, Any, Type, TypeVar
@@ -28,8 +27,7 @@ from smqtk_classifier.classification_element_factory import ClassificationElemen
 ImMatObDet = TypeVar("ImMatObDet", bound="ImageMatrixObjectDetector")
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ObjectDetector (Plugfigurable, ContentTypeValidator):
+class ObjectDetector (Plugfigurable, ContentTypeValidator, metaclass=abc.ABCMeta):
     """
     Abstract interface to an object detection algorithm.
 
@@ -67,7 +65,7 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
             '{}{}{}{}'.format(*(bbox.min_vertex.tolist() +
                                 bbox.max_vertex.tolist())) + \
             ''.join(sorted(map(str, labels)))
-        return hashlib.sha1(six.b(hashable)).hexdigest()
+        return hashlib.sha1(bytes(hashable, "utf8")).hexdigest()
 
     def detect_objects(
             self,
@@ -143,8 +141,7 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator):
         """
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ImageMatrixObjectDetector (ObjectDetector):
+class ImageMatrixObjectDetector (ObjectDetector, metaclass=abc.ABCMeta):
     """
     Class of object detectors that operate over the pixel matrix of an image.
 
