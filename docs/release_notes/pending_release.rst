@@ -8,5 +8,7 @@ Dependencies
 
 * Remove ``six`` packages as dependencies and fix ramifications.
 
+* Update ``smqtk-*`` dependency packages to latest patched versions.
+
 Fixes
 -----
