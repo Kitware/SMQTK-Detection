@@ -31,8 +31,6 @@ smqtk-core = ">=0.18.0"
 smqtk-classifier = ">=0.17.0"
 smqtk-image-io = ">=0.16.0"
 smqtk-dataprovider = ">=0.16.0"
-six = "^1.16.0"
-types-six = "^1.16.1"
 
 [tool.poetry.dev-dependencies]
 #CI
@@ -51,7 +49,7 @@ pytest = "^5.4.1"
 pytest-cov = "^2.8.1"
 
 [tool.poetry.plugins."smqtk_plugins"]
-#Detection Element
+# Detection Element
 "smqtk_detection.impls.detection_element.memory" = "smqtk_detection.impls.detection_element.memory"
 
 [tool.pytest.ini_options]
