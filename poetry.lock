@@ -374,7 +374,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [[package]]
 name = "smqtk-classifier"
-version = "0.17.0"
+version = "0.19.0"
 description = "Algorithms, data structures and utilities around performing classificationof inputs."
 category = "main"
 optional = false
@@ -384,7 +384,7 @@ python-versions = ">=3.6,<4.0"
 numpy = ">=1.19.5,<2.0.0"
 smqtk-core = ">=0.18.0"
 smqtk-dataprovider = ">=0.16.0"
-smqtk-descriptors = ">=0.16.0"
+smqtk-descriptors = ">=0.18"
 
 [package.extras]
 sklearn = ["scikit-learn (>=0.24.1,<0.25.0)"]
@@ -420,7 +420,7 @@ psql = ["psycopg2-binary (>=2.8.6,<3.0.0)"]
 
 [[package]]
 name = "smqtk-descriptors"
-version = "0.16.0"
+version = "0.18.0"
 description = "Algorithms, data structures and utilities around computingdescriptor vectors from data."
 category = "main"
 optional = false
@@ -430,10 +430,11 @@ python-versions = ">=3.6,<4.0"
 numpy = ">=1.19.5,<2.0.0"
 smqtk-core = ">=0.18.0"
 smqtk-dataprovider = ">=0.16.0"
+smqtk-image-io = ">=0.16.2,<0.17.0"
 
 [[package]]
 name = "smqtk-image-io"
-version = "0.16.1"
+version = "0.16.2"
 description = "SMQTK Image IO"
 category = "main"
 optional = false
@@ -665,7 +666,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "e2d7bf1740e3bff7c2a1c4a0061a6f52bc8f0321db41692d0b14e511e6ff490f"
+content-hash = "013fca9975a613f1b83750a2e985536d371abbecd2f7293d0d35e2c077621060"
 
 [metadata.files]
 alabaster = [
@@ -1000,8 +1001,8 @@ six = [
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
 smqtk-classifier = [
-    {file = "smqtk_classifier-0.17.0-py3-none-any.whl", hash = "sha256:55ca160a122463aa4656db738a56e7111a9175f1d9b00e71b7cb390b7f58bc69"},
-    {file = "smqtk_classifier-0.17.0.tar.gz", hash = "sha256:e0f21c4b3f2ca78abc21be340ca7c0d6ee2fc9ff88e07d332a15bd9d6993c004"},
+    {file = "smqtk_classifier-0.19.0-py3-none-any.whl", hash = "sha256:69a94e115ff42ccf0aa0dd79dadd087313a80daa072f917594a5e06ac0f24a52"},
+    {file = "smqtk_classifier-0.19.0.tar.gz", hash = "sha256:f09750dc32d0c66e1ac8cfb5fb180dc7185fe48749bb71ca00426acb4e1ea2e1"},
 ]
 smqtk-core = [
     {file = "smqtk-core-0.18.1-1.tar.gz", hash = "sha256:a3d71a9468c1efb642e3d7298c7d1cf6ce7f5bb302f63e0e20bc1150f8bbee7e"},
@@ -1012,12 +1013,12 @@ smqtk-dataprovider = [
     {file = "smqtk_dataprovider-0.16.0.tar.gz", hash = "sha256:27cea4dcfc9ec47ccefef8ec14dc20f0c3840c27ed471f49025f63777cfdfbc3"},
 ]
 smqtk-descriptors = [
-    {file = "smqtk_descriptors-0.16.0-py3-none-any.whl", hash = "sha256:f70710ef72a89780d2d52bc5886503efdd24096f0ea5dadb646c1dd54a3f576c"},
-    {file = "smqtk_descriptors-0.16.0.tar.gz", hash = "sha256:3d1b758a1a569d6f5a9acec26879a1686b6c485148151812c945326a7fd75dc3"},
+    {file = "smqtk_descriptors-0.18.0-py3-none-any.whl", hash = "sha256:febbe866de69911a211ee368b2597454213c36f3e1c815263649011ea490f965"},
+    {file = "smqtk_descriptors-0.18.0.tar.gz", hash = "sha256:abd3e6ddefd6cad793f673e3dc98fe0802d8c8911a8b7015cc2cd6f2f5c4066f"},
 ]
 smqtk-image-io = [
-    {file = "smqtk_image_io-0.16.1-py3-none-any.whl", hash = "sha256:a851ca9d776ac1b049a672b5e8896f69021feb00cee20179ceb04f64d03fea26"},
-    {file = "smqtk_image_io-0.16.1.tar.gz", hash = "sha256:9aa31bd987e1c93a27611d054a944939090c980c4c5fa5b9a66fd0120e0e2145"},
+    {file = "smqtk_image_io-0.16.2-py3-none-any.whl", hash = "sha256:14b12e81db7c22716657d3066e908199457b9bf56c5fb8248f2feac98b6f8e3d"},
+    {file = "smqtk_image_io-0.16.2.tar.gz", hash = "sha256:c8a6dbfa8a6ef8122fca44616f71ad03d858c80427ea01be50abc40fe4f30531"},
 ]
 snowballstemmer = [
     {file = "snowballstemmer-2.1.0-py2.py3-none-any.whl", hash = "sha256:b51b447bea85f9968c13b650126a888aabd4cb4463fca868ec596826325dedc2"},
