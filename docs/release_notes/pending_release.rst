@@ -6,7 +6,8 @@ Updates / New Features
 
 Features
 
-* Created `DetectImageObjects` interface to handle image matrices directly.
+* Created `DetectImageObjects` interface and accompanying example
+  implementation, `RandomDetector` to handle image matrices directly.
 
 Fixes
 -----

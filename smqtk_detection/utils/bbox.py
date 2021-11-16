@@ -5,7 +5,7 @@ import numpy
 
 from smqtk_core import Plugfigurable
 
-from typing import Type, Union, Optional, List, Any
+from typing import Type, Union, Optional, Sequence
 
 
 class AxisAlignedBoundingBox (Plugfigurable):
@@ -36,7 +36,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     EQUALITY_ATOL = 1.e-8
     EQUALITY_RTOL = 1.e-5
 
-    def __init__(self, min_vertex: List[Union[int, float]], max_vertex: List[Union[int, float]]) -> None:
+    def __init__(self, min_vertex: Sequence[Union[int, float]], max_vertex: Sequence[Union[int, float]]) -> None:
         """
         Create a new AxisAlignedBoundingBox from the given minimum and maximum
         euclidean-space vertex.
@@ -116,7 +116,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
     def __setstate__(self, state: Union[list, tuple]) -> None:
         self._set_vertices(*state)
 
-    def _set_vertices(self, min_v: List[Any], max_v: List[Any]) -> None:
+    def _set_vertices(self, min_v: Sequence[Union[int, float]], max_v: Sequence[Union[int, float]]) -> None:
         self.min_vertex = numpy.asarray(min_v)
         self.min_vertex.flags.writeable = False
         self.max_vertex = numpy.asarray(max_v)
@@ -148,7 +148,7 @@ class AxisAlignedBoundingBox (Plugfigurable):
         # the intersection's maximum and minimum vertices is <= 0.
         if (inter_max_v - inter_min_v).min() <= 0:
             return None
-        return AxisAlignedBoundingBox(inter_min_v, inter_max_v)
+        return AxisAlignedBoundingBox(inter_min_v.tolist(), inter_max_v.tolist())
 
     @property
     def ndim(self) -> int:
