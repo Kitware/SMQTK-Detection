@@ -6,3 +6,4 @@ Release Notes
 
    release_notes/v0.15.0
    release_notes/v0.16.0
+   release_notes/v0.17.0
