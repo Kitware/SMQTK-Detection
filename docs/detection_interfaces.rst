@@ -24,3 +24,8 @@ ImageMatrixObjectDetector
 +++++++++++++++++++++++++
 .. autoclass:: smqtk_detection.interfaces.object_detector.ImageMatrixObjectDetector
    :members:
+
+DetectImageObjects
+++++++++++++++++++
+.. autoclass:: smqtk_detection.interfaces.detect_image_objects.DetectImageObjects
+  :members:

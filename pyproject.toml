@@ -51,6 +51,7 @@ pytest-cov = "^2.8.1"
 [tool.poetry.plugins."smqtk_plugins"]
 # Detection Element
 "smqtk_detection.impls.detection_element.memory" = "smqtk_detection.impls.detection_element.memory"
+"smqtk_detection.impls.detect_image_objects.random_detector" = "smqtk_detection.impls.detect_image_objects.random_detector"
 
 [tool.pytest.ini_options]
 addopts = [
