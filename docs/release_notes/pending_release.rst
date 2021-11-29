@@ -11,3 +11,8 @@ Features
 
 Fixes
 -----
+
+Dependencies
+
+* Update pinned version of Pillow used for development to address a security
+  vulnerability.
