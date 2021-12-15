@@ -26,11 +26,16 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.2"
 smqtk-core = ">=0.18.0"
 smqtk-classifier = ">=0.19.0"
 smqtk-dataprovider = ">=0.16.0"
 smqtk-image-io = ">=0.16.2"
+torch = {version = "^1.10.0", optional = true}
+torchvision = {version = "^0.11.1", optional = true}
+
+[tool.poetry.extras]
+torch = [ "torch", "torchvision" ]
 
 [tool.poetry.dev-dependencies]
 #CI
@@ -52,6 +57,7 @@ pytest-cov = "^2.8.1"
 # Detection Element
 "smqtk_detection.impls.detection_element.memory" = "smqtk_detection.impls.detection_element.memory"
 "smqtk_detection.impls.detect_image_objects.random_detector" = "smqtk_detection.impls.detect_image_objects.random_detector"
+"smqtk_detection.impls.detect_image_objects.resnet_frcnn" = "smqtk_detection.impls.detect_image_objects.resnet_frcnn"
 
 [tool.pytest.ini_options]
 addopts = [
