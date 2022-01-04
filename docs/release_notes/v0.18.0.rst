@@ -1,5 +1,11 @@
 v0.18.0
 =======
+This minor release primarily adds two new optional plugins for
+`DetectImageObjects`: PyTorch-based ResNetFRCNN and CenterNetVisdrone.
+These may be usable after installing the "torch" and "centernet" extras,
+respectively.
+These implementations currently require an internet connection to be able to
+initially download pretrained models.
 
 Updates / New Features
 ----------------------
