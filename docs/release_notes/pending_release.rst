@@ -4,6 +4,10 @@ Pending Release Notes
 Updates / New Features
 ----------------------
 
+CI
+
+* Add workflow to inherit the smqtk-core publish workflow.
+
 Features
 
 * Added `ResNetFRCNN` implementation of `DetectImageObjects` that relies on,
@@ -15,6 +19,11 @@ Features
 
 * Moved, and added to, interface convenience exposure to the package root
   module.
+
+Miscellaneous
+
+* Added a wrapper script to pull the versioning/changelog update helper from
+  smqtk-core to use here without duplication.
 
 Fixes
 -----
