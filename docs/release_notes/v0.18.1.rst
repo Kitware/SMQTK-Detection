@@ -1,0 +1,17 @@
+v0.18.1
+=======
+This patch release addresses an issue with the centernet plugin where image
+preprocessing was not happening on an appropriate per-batch cadence which led
+to more RAM being consumed than intended for large input sequences.
+
+Fixes
+-----
+
+CI
+
+* Also run CI unittests for PRs targeting branches that match the `release*`
+  glob.
+
+Implementations
+
+* Fix ``CenterNetVisdrone`` batched operation and class labels
