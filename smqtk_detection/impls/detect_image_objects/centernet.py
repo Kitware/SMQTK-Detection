@@ -1,17 +1,3 @@
-from typing import Iterable, Tuple, Dict, Hashable, List
-import numpy as np
-import math
-
-try:
-    import torch  # type: ignore
-    from torch.cuda.amp import autocast  # type: ignore
-    import torch.nn as nn  # type: ignore
-    import torch.utils.model_zoo as model_zoo  # type: ignore
-    import cv2  # type: ignore
-    import numba  # type: ignore
-except ModuleNotFoundError:
-    pass
-
 """
 MIT License
 
@@ -37,13 +23,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from smqtk_detection.interfaces.detect_image_objects import DetectImageObjects
+from typing import Iterable, Tuple, Dict, Hashable, List
+import numpy as np
+import math
+import logging
+
+try:
+    import torch  # type: ignore
+    from torch.cuda.amp import autocast  # type: ignore
+    import torch.nn as nn  # type: ignore
+    import torch.utils.model_zoo as model_zoo  # type: ignore
+    from torch.utils.data import Dataset, DataLoader  # type: ignore
+    import cv2  # type: ignore
+    import numba  # type: ignore
+except ModuleNotFoundError:
+    pass
+
+from smqtk_detection import DetectImageObjects
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 from importlib.util import find_spec
 deps = ['torch', 'cv2', 'numba']
 specs = [find_spec(dep) for dep in deps]
 usable = all([spec is not None for spec in specs])
+
+logger = logging.getLogger(__name__)
 
 
 class CenterNetVisdrone(DetectImageObjects):
@@ -63,7 +67,8 @@ class CenterNetVisdrone(DetectImageObjects):
         flip: bool = False,
         nms: bool = True,
         use_cuda: bool = True,
-        batch_size: int = None,
+        batch_size: int = 1,
+        num_workers: int = 0,
     ):
         """
         :param arch: Backbone architecture to use. One of
@@ -89,6 +94,7 @@ class CenterNetVisdrone(DetectImageObjects):
         :param use_cuda: Use a CUDA device to compute detections. This defaults
             to false if no such device is available.
         :param batch_size: Number of images to feed to the torch model at once.
+        :param num_workers: Number of subprocesses to use for data loading.
 
         """
         model_urls = {
@@ -124,10 +130,14 @@ class CenterNetVisdrone(DetectImageObjects):
         self.use_cuda = use_cuda
         self.nms = nms
         self.batch_size = batch_size
+        self.num_workers = num_workers
 
         # CenterNet model input size
         self.input_h = 960
         self.input_w = 1280
+
+        self.out_h = self.input_h // 2
+        self.out_w = self.input_w // 2
 
         self.num_classes = 10
 
@@ -135,8 +145,12 @@ class CenterNetVisdrone(DetectImageObjects):
         self.mean = np.asarray([[[0.372949, 0.37837514, 0.36463863]]], dtype=np.float32)
         self.std = np.asarray([[[0.19171683, 0.18299586, 0.19437608]]], dtype=np.float32)
 
-        if use_cuda and torch.cuda.is_available():
-            self.device = torch.device('cuda')
+        if use_cuda:
+            if torch.cuda.is_available():
+                self.device = torch.device('cuda')
+            else:
+                logger.info("CUDA device not available, using CPU.")
+                self.device = torch.device('cpu')
         else:
             self.device = torch.device('cpu')
 
@@ -144,140 +158,198 @@ class CenterNetVisdrone(DetectImageObjects):
         self.model.init_weights(model_urls[self.arch], pretrained=True)
         self.model = self.model.to(self.device)
         self.model = _load_model(self.model, model_file)
+        self.model = self.model.eval()
 
     def detect_objects(
         self,
         img_iter: Iterable[np.ndarray]
     ) -> Iterable[Iterable[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
 
-        proc_imgs = []
-        centers = []
-        trans_scales = []
-        out_height = self.input_h // 2
-        out_width = self.input_w // 2
+        img_set = _ImageDataset(img_iter, self.flip, self.scales, self._preprocess_img)
+        batch_loader = DataLoader(img_set, batch_size=self.batch_size, num_workers=self.num_workers)
 
-        # pre-process images
-        for img in img_iter:
-            height, width = img.shape[0:2]
-            for scale in self.scales:
+        # need to match flipped batched outputs if using flip and batch size is odd
+        align_needed = self.flip and self.batch_size % 2 != 0
 
-                new_height = int(height * scale)
-                new_width = int(width * scale)
-                center = np.array([new_width / 2., new_height / 2.], dtype=np.float32)
+        if align_needed:
+            score_carry = torch.empty((0, self.num_classes, self.out_h, self.out_w)).to(self.device)
+            size_carry = torch.empty((0, 2, self.out_h, self.out_w)).to(self.device)
+            offset_carry = torch.empty((0, 2, self.out_h, self.out_w)).to(self.device)
 
-                trans_scale = max(height, width) * 1.0
+        dets_mat = np.empty((0, self.k, 6))
+        for batch_i, (img_tensor, centers, trans_scales) in enumerate(batch_loader):
 
-                # perform affine transformation on Ground Truth heatmap
-                trans_input = _get_affine_transform(center=center,
-                                                    scale=trans_scale,
-                                                    rot=0,
-                                                    output_size=[self.input_w, self.input_h])
+            logger.info(f"[{batch_i+1}/{len(batch_loader)}]")
 
-                resized_image = cv2.resize(img, (new_width, new_height))
+            img_tensor = img_tensor.to(self.device)
+            centers = centers.cpu().numpy()
+            trans_scales = trans_scales.cpu().numpy()
 
-                trans_img = cv2.warpAffine(src=resized_image,
-                                           M=trans_input,  # transformation matrix
-                                           dsize=(self.input_w, self.input_h),  # ouptut image size
-                                           flags=cv2.INTER_LINEAR)  # combination of interpolation methods
-
-                # normalize
-                trans_img = (trans_img.astype(np.float32) / 255.)
-                trans_img = (trans_img - self.mean) / self.std
-
-                proc_imgs.append(trans_img)
-
-                # store transform center and scale for inverse transform on detections
-                centers.append(center)
-                trans_scales.append(trans_scale)
-
-                if self.flip:
-                    proc_imgs.append(trans_img[:, ::-1, :])
-
-        img_mat = np.asarray(proc_imgs)
-        img_mat = np.moveaxis(img_mat, -1, 1)
-        img_tensors = torch.from_numpy(img_mat).to(self.device)
-
-        if self.batch_size is not None:
-            # split into batches
-            batches = []
-            for i in range(0, len(img_tensors), self.batch_size):
-                batches.append(img_tensors[i: i + self.batch_size])
-
-            # run batches through CenterNet model
             with torch.no_grad():
-                batch_outputs = [self.model(batch) for batch in batches]
+                output = self.model(img_tensor)
 
-            output = {}
-            output['hm'] = torch.cat([batch_output['hm'] for batch_output in batch_outputs], dim=0)
-            output['wh'] = torch.cat([batch_output['wh'] for batch_output in batch_outputs], dim=0)
-            output['reg'] = torch.cat([batch_output['reg'] for batch_output in batch_outputs], dim=0)
+            score_maps = output['hm'].sigmoid_()  # detection scores
+            size_maps = output['wh']  # bbox sizes
+            offset_maps = output['reg']  # bbox offsets
 
-        else:
-            # run images through CenterNet model
-            with torch.no_grad():
-                output = self.model(img_tensors)
+            if align_needed:
+                score_maps = torch.vstack((score_carry, score_maps))
+                size_maps = torch.vstack((size_carry, size_maps))
+                offset_maps = torch.vstack((offset_carry, offset_maps))
 
-        score_maps = output['hm'].sigmoid_()  # detection scores
-        size_maps = output['wh']  # bbox sizes
-        offset_maps = output['reg']  # bbox offsets
+                # odd number of score_maps
+                if len(score_maps) % 2 == 1:
+                    score_carry = score_maps[[-1]]
+                    score_maps = score_maps[:-1]
 
-        # combine outputs from flipped images
-        if self.flip:
-            score_maps = (score_maps[0:len(proc_imgs):2] + torch.flip(score_maps[1:len(proc_imgs):2], [3])) / 2
-            size_maps = (size_maps[0:len(proc_imgs):2] + torch.flip(size_maps[1:len(proc_imgs):2], [3])) / 2
-            offset_maps = offset_maps[0:len(proc_imgs):2]
+                    size_carry = size_maps[[-1]]
+                    size_maps = size_maps[:-1]
 
-        # decode maps into detections
-        dets_mat = _ctdet_decode(score_maps, size_maps, offset_maps, self.k)
-        dets_mat = dets_mat.detach().cpu().numpy()
+                    offset_carry = offset_maps[[-1]]
+                    offset_maps = offset_maps[:-1]
+                else:
+                    score_carry = torch.empty((0, self.num_classes, self.out_h, self.out_w)).to(self.device)
+                    size_carry = torch.empty((0, 2, self.out_h, self.out_w)).to(self.device)
+                    offset_carry = torch.empty((0, 2, self.out_h, self.out_w)).to(self.device)
 
-        # transform detections back to original scale
-        for img_i, (img_dets, center, trans_scale) in enumerate(zip(dets_mat, centers, trans_scales)):
-            trans = _get_affine_transform(center, trans_scale, 0, [out_width, out_height], inv=1)
-            for det_i, det in enumerate(img_dets):
-                det[0:2] = _affine_transform(det[0:2], trans)
-                det[2:4] = _affine_transform(det[2:4], trans)
-                img_dets[det_i] = det
+            # combine outputs from flipped images
+            if self.flip:
+                score_maps = (score_maps[0:None:2] + torch.flip(score_maps[1:None:2], [3])) / 2
+                size_maps = (size_maps[0:None:2] + torch.flip(size_maps[1:None:2], [3])) / 2
+                offset_maps = offset_maps[0:None:2]
+                centers = centers[0:None:2]
+                trans_scales = trans_scales[0:None:2]
 
-            dets_mat[img_i] = img_dets
+            # score_maps might be empty if batch size is one and flip is used
+            if len(score_maps) > 0:
+                # decode maps into detections
+                dets_mat_batch = _ctdet_decode(score_maps, size_maps, offset_maps, self.k)
+                dets_mat_batch = dets_mat_batch.cpu().numpy()
 
+                dets_mat_batch = np.asarray([
+                    self._postprocess_dets(dets, center, trans_scale)
+                    for dets, center, trans_scale in zip(dets_mat_batch, centers, trans_scales)])
+
+                dets_mat = np.vstack((dets_mat, dets_mat_batch))
+
+        img_dets_list = self._combine_dets(dets_mat)
+
+        formatted_dets = [self._dets_mat_to_list(img_dets_mat) for img_dets_mat in img_dets_list]
+
+        return formatted_dets
+
+    def _preprocess_img(
+        self,
+        img: np.ndarray,
+        scale: float
+    ) -> Tuple[np.ndarray, np.ndarray, float]:
+        """
+        Scales, transforms, and normalizes image for passing to model.
+        """
+
+        height, width = img.shape[0:2]
+
+        new_height = int(height * scale)
+        new_width = int(width * scale)
+        center = np.array([new_width / 2., new_height / 2.], dtype=np.float32)
+
+        trans_scale = max(height, width) * 1.0
+
+        trans_input = _get_affine_transform(center=center,
+                                            scale=trans_scale,
+                                            rot=0,
+                                            output_size=[self.input_w, self.input_h])
+
+        resized_image = cv2.resize(img, (new_width, new_height))
+
+        trans_img = cv2.warpAffine(
+            src=resized_image,
+            M=trans_input,
+            dsize=(self.input_w, self.input_h),
+            flags=cv2.INTER_LINEAR
+        )  # type: np.ndarray
+
+        # normalize
+        trans_img = (trans_img.astype(np.float32) / 255.)
+        trans_img = (trans_img - self.mean) / self.std
+
+        return trans_img, center, trans_scale
+
+    def _postprocess_dets(
+        self,
+        img_dets: np.ndarray,
+        center: List[float],
+        trans_scale: float
+    ) -> np.ndarray:
+        """
+        Transforms detections back to original image reference frame.
+        """
+
+        trans_dets = []
+        trans = _get_affine_transform(center, trans_scale, 0, [self.out_w, self.out_h], inv=1)
+        for det in img_dets:
+            det[0:2] = _affine_transform(det[0:2], trans)
+            det[2:4] = _affine_transform(det[2:4], trans)
+            trans_dets.append(det)
+
+        return np.asarray(trans_dets)
+
+    def _combine_dets(
+        self,
+        dets_mat: np.ndarray
+    ) -> List[np.ndarray]:
+        """
+        Combines scales from different image scales and returns top N
+        detections for each image.
+        """
+
+        # organize by scale
+        # dim0: img, dim1: scale, dim2: detection
         dets_mat = dets_mat.reshape(-1, len(self.scales), self.k, 6)  # organize by scale
 
-        for img_i, img_dets in enumerate(dets_mat):
-            for scale_i, scale in enumerate(self.scales):
-                img_dets[scale_i, :, :4] /= scale
-            dets_mat[img_i] = img_dets
+        # scale dets
+        dets_mat[:, :, :, :4] /= np.asarray(self.scales)[:, None, None]
 
-        # empty dict to fill
-        zero_dict = {}  # type: Dict[Hashable, float]
-        for i in range(self.num_classes):
-            zero_dict[i] = 0
-
-        dets_list = []  # list of detections to return
+        img_dets = []
 
         # combine detections from different image scales
-        for scales_det_mat in dets_mat:
-            img_filtered_dets = np.asarray([]).reshape(0, 6)
-            formatted_dets = []
+        for img_scales_det_mat in dets_mat:
+            img_filtered_dets = np.empty((0, 6))
             for c in range(self.num_classes):
-                class_dets = scales_det_mat[scales_det_mat[:, :, -1] == c]  # all detections of given class
-                filtered_dets = _soft_nms(class_dets, Nt=0.5, method=2, threshold=0.3)  # filter repeat detections
-                img_filtered_dets = np.vstack((img_filtered_dets, filtered_dets))
+                class_dets = img_scales_det_mat[img_scales_det_mat[:, :, -1] == c]  # all detections of given class
+                if len(self.scales) > 1 or self.nms:
+                    class_dets = _soft_nms(class_dets, Nt=0.5, method=2, threshold=0.3)  # filter repeat detections
+                img_filtered_dets = np.vstack((img_filtered_dets, class_dets))
 
             img_filtered_dets = img_filtered_dets[img_filtered_dets[:, 4].argsort()]  # sort by score
 
             img_top_dets = img_filtered_dets[-self.max_dets:][::-1]  # grab top detections
 
-            # format detections for image
-            for det in img_top_dets:
-                bbox = AxisAlignedBoundingBox(det[0:2], det[2:4])
+            img_dets.append(img_top_dets)
 
-                class_dict = zero_dict.copy()
-                class_dict[det[5]] = det[4]
+        return img_dets
 
-                formatted_dets.append((bbox, class_dict))
+    def _dets_mat_to_list(
+        self,
+        dets_mat: np.ndarray
+    ) -> List[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
+        """
+        Converts detection matrix to the format required by the
+        ``DetectImageObjects`` interface.
+        """
 
-            dets_list.append(formatted_dets)
+        # empty dict to fill
+        # applicable visdrone classes start at 1
+        zero_dict = {i: 0 for i in range(1, self.num_classes+1)}  # type: Dict[Hashable, float]
+
+        dets_list = []
+        for det in dets_mat:
+            bbox = AxisAlignedBoundingBox(det[0:2], det[2:4])
+
+            class_dict = zero_dict.copy()
+            class_dict[det[5] + 1] = det[4]
+
+            dets_list.append((bbox, class_dict))
 
         return dets_list
 
@@ -299,11 +371,54 @@ class CenterNetVisdrone(DetectImageObjects):
 
 if usable:
 
+    class _ImageDataset(Dataset):
+        """
+        Pytorch dataset that loads flipped and scaled version of images
+        """
+
+        def __init__(self, img_iter, flip, scales, transform):  # type: ignore
+            self.imgs = list(img_iter)
+            self.transform = transform
+
+            mult = len(scales) * (int(flip) + 1)
+            num_imgs = len(self.imgs) * mult
+
+            idx_scales = np.repeat(scales, int(flip)+1)
+
+            idx_map = {}
+            for idx in range(num_imgs):
+                idx_map[idx] = {}
+
+                idx_map[idx]['img_idx'] = math.floor(idx / mult)
+
+                idx_map[idx]['flip'] = (idx % 2 == 1 and flip)
+
+                idx_map[idx]['scale'] = idx_scales[idx % mult]
+
+            self.idx_map = idx_map
+
+        def __len__(self):  # type: ignore
+            return len(self.idx_map)
+
+        def __getitem__(self, idx):  # type: ignore
+            idx_dict = self.idx_map[idx]
+
+            img = self.imgs[idx_dict['img_idx']]
+
+            img, center, trans_scale = self.transform(img, idx_dict['scale'])
+
+            if idx_dict['flip']:
+                img = img[:, ::-1, :]
+
+            img = np.moveaxis(img, -1, 0)
+            img = torch.from_numpy(img.copy())
+
+            return img, center, trans_scale
+
     """
     Everything defined below was taken directly from the original author's
     implementation (https://github.com/GNAYUOHZ/centernet-visdrone).
     """
-
 # ==================== Functions used by CenterNetVisdrone ====================
     def _load_model(model, model_path, optimizer=None, lr=None, lr_step=None):  # type: ignore
         """
@@ -311,7 +426,7 @@ if usable:
         """
         start_epoch = 0
         checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
-        print(f'loaded {model_path}, epoch {checkpoint["epoch"]}')
+        logger.info(f'loaded {model_path}, epoch {checkpoint["epoch"]}')
         state_dict_ = checkpoint["state_dict"]
         state_dict = {}  # type: Dict[str, torch.Tensor]
 
@@ -333,16 +448,16 @@ if usable:
         for k in state_dict:
             if k in model_state_dict:
                 if state_dict[k].shape != model_state_dict[k].shape:
-                    print(
+                    logger.info(
                         f"Skip loading parameter {k}, required shape {model_state_dict[k].shape},\
                         loaded shape {state_dict[k].shape}. {msg}"
                     )
                     state_dict[k] = model_state_dict[k]
             else:
-                print(f"Drop parameter {k}. {msg}")
+                logger.info(f"Drop parameter {k}. {msg}")
         for k in model_state_dict:
             if k not in state_dict:
-                print(f"No param {k}. {msg}")
+                logger.info(f"No param {k}. {msg}")
                 state_dict[k] = model_state_dict[k]
         model.load_state_dict(state_dict, strict=False)
 
@@ -358,9 +473,9 @@ if usable:
                             start_lr *= 0.1
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = start_lr
-                print("Resumed optimizer with start lr", start_lr)
+                logger.info("Resumed optimizer with start lr", start_lr)
             else:
-                print("No optimizer parameters in checkpoint.")
+                logger.info("No optimizer parameters in checkpoint.")
         if optimizer is not None:
             return model, optimizer, start_epoch
         else:
@@ -750,7 +865,7 @@ if usable:
                                     nn.init.constant_(m.bias, 0)
 
                 pretrained_state_dict = model_zoo.load_url(url)
-                print("=> loading pretrained model {}".format(url))
+                logger.info("=> loading pretrained model {}".format(url))
                 self.load_state_dict(pretrained_state_dict, strict=False)
 
 # ============================ ResNet architectures ===========================
