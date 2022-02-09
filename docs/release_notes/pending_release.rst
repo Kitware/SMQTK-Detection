@@ -4,6 +4,10 @@ Pending Release Notes
 Updates / New Features
 ----------------------
 
+Documentation
+
+* Updated CONTRIBUTING.md to reference smqtk-core's CONTRIBUTING.md file.
+
 Fixes
 -----
 
