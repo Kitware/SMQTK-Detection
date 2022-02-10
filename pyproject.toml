@@ -67,11 +67,13 @@ ipython = "^7.16.3"
 
 [tool.pytest.ini_options]
 addopts = [
-    "-lv",                      # Show local in trace-backs.
-    "--doctest-modules",        # Increased verbosity.
-    "--tb=long",                # Trace-back print mode.
-    "--cov=smqtk_detection",    # Cover our package specifically
-    "--cov-report=term",        # Coverage report to terminal
+    "-lv",                          # Show local in trace-backs.
+    "--doctest-modules",            # Increased verbosity.
+    "--tb=long",                    # Trace-back print mode.
+    "--cov=./smqtk_detection",      # Cover our package specifically
+    "--cov=./tests",                # Also cover our tests for dead spots
+    "--cov-report=term",            # Coverage report to terminal
+    "--cov-report=xml:coverage.xml" # For external tool reporting
 ]
 testpaths = [
     "tests",
