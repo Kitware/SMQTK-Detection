@@ -13,6 +13,9 @@ on:
     branches:
       - master
       - release*
+  schedule:
+    # Nightly run unit tests to check for implicit dependency issues between pull requests.
+    - cron: '0 0 * * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -114,6 +117,7 @@ jobs:
       - name: Setup Environment
         # See: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-using-a-public-action-in-a-subdirectory
         uses: Kitware/SMQTK-Core/.github/actions/python-poetry-setup@master
+
       - name: Optionally install additional requirements
         env:
           OPT_EXTRA: ${{ matrix.opt-extra }}
@@ -122,5 +126,13 @@ jobs:
           then
             poetry install --extras "$OPT_EXTRA"
           fi
+
       - name: Run Unittests
-        run: poetry run pytest --cov=smqtk_detection --cov-report=xml
+        run: poetry run pytest
+
+      - name: CodeCov report submission
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+          files: coverage.xml
+          flags: unittests
