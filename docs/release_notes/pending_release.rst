@@ -6,8 +6,8 @@ Updates / New Features
 
 CI
 
-* Updated CI unittests workflow to include codecov reporting and to run
-  nightly.
+* Updated CI unittests workflow to include codecov reporting.
+  Reduced CodeCov report submission by skipping this step on scheduled runs.
 
 Documentation
 
