@@ -13,6 +13,12 @@ Documentation
 
 * Updated CONTRIBUTING.md to reference smqtk-core's CONTRIBUTING.md file.
 
+Detect Image Objects
+
+* Updated the `ResNetFRCNN` to return as its class labels the label strings
+  instead of integers, reducing the burden of users from having to repeatedly
+  find and allocate the appropriate int-to-label map.
+
 Fixes
 -----
 
