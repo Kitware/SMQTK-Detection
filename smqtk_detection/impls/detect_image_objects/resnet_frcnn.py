@@ -1,6 +1,6 @@
 import importlib.util
 import logging
-from typing import Tuple, Iterable, Dict, Hashable, List
+from typing import Tuple, Iterable, Dict, Hashable, List, Union
 from types import MethodType
 
 import numpy as np
@@ -32,6 +32,9 @@ class ResNetFRCNN(DetectImageObjects):
     :param img_batch_size: Batch size in images for inferences.
     :param use_cuda: Attempt to use a cuda device for inferences. If no
         device is found, CPU is used.
+    :param cuda_device: When using CUDA use the device by the given ID. By
+        default, this refers to GPU ID 0. This parameter is not used if
+        `use_cuda` is false.
     """
 
     def __init__(
@@ -40,24 +43,30 @@ class ResNetFRCNN(DetectImageObjects):
         num_dets: int = 100,
         img_batch_size: int = 1,
         use_cuda: bool = False,
+        cuda_device: Union[int, str] = "cuda:0",
     ):
         self.box_thresh = box_thresh
         self.num_dets = num_dets
         self.img_batch_size = img_batch_size
         self.use_cuda = use_cuda
+        self.cuda_device = cuda_device
 
         # Set to None for lazy loading later.
         self.model: torch.nn.Module = None  # type: ignore
+        self.model_device: torch.device = None  # type: ignore
 
         # The model already has normalization and resizing baked into the
         # layers.
         self.model_loader = transforms.Compose([
-            # transforms.ToPILImage(),
             transforms.ToTensor(),
         ])
 
     def get_model(self) -> "torch.nn.Module":
-        """Lazy load the torch model in an idempotent manner."""
+        """
+        Lazy load the torch model in an idempotent manner.
+
+        :raises RuntimeError: Use of CUDA was requested but is not available.
+        """
         model = self.model
         if model is None:
             model = models.detection.fasterrcnn_resnet50_fpn(
@@ -67,18 +76,21 @@ class ResNetFRCNN(DetectImageObjects):
                 box_score_thresh=self.box_thresh
             )
             model = model.eval()
+            model_device = torch.device('cpu')
             if self.use_cuda:
                 if torch.cuda.is_available():
-                    model = model.cuda()
+                    model_device = torch.device(device=self.cuda_device)
+                    model = model.to(device=model_device)
                 else:
-                    LOG.warning("Use of CUDA requested, but not available. "
-                                "Proceeding with model NOT transitioned to "
-                                "CUDA.")
+                    raise RuntimeError(
+                        "Use of CUDA requested, but not available."
+                    )
             model.roi_heads.postprocess_detections = (
                 MethodType(_postprocess_detections, model.roi_heads)
             )
             # store the loaded model for later return.
             self.model = model
+            self.model_device = model_device
         return model
 
     def detect_objects(
@@ -92,7 +104,8 @@ class ResNetFRCNN(DetectImageObjects):
         img_tensors = [self.model_loader(img) for img in img_list]
 
         if self.use_cuda:
-            img_tensors = [tensor.cuda() for tensor in img_tensors]
+            img_tensors = [tensor.to(device=self.model_device)
+                           for tensor in img_tensors]
 
         # split into batches
         batches = []
@@ -129,6 +142,7 @@ class ResNetFRCNN(DetectImageObjects):
             "num_dets": self.num_dets,
             "img_batch_size": self.img_batch_size,
             "use_cuda": self.use_cuda,
+            "cuda_device": self.cuda_device,
         }
 
     @classmethod

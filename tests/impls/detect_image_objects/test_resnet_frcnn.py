@@ -37,24 +37,20 @@ class TestResNetFRCNN:
 
     @mock.patch("torch.cuda.is_available")
     @mock.patch("torchvision.models.detection.fasterrcnn_resnet50_fpn")
-    def test_get_model_cuda_backoff(
+    def test_get_model_cuda_not_available(
         self,
         m_model_constructor: mock.MagicMock,
         m_torch_cuda: mock.MagicMock
     ) -> None:
         """
-        Test that when requesting cuda when its not available still results in
-        a model, but it doesn't have the CUDA method called on it, and a
-        warning is emitted.
+        Test that when requesting cuda when it's not available results in a
+        RuntimeError.
         """
         m_torch_cuda.return_value = False
 
         inst = ResNetFRCNN(use_cuda=True)
-        test_model = inst.get_model()
-
-        # Trace calls before test point, check that cuda conversion not called.
-        assert test_model is m_model_constructor().eval()
-        m_model_constructor().eval().cuda.assert_not_called()
+        with pytest.raises(RuntimeError, match=r"not available"):
+            inst.get_model()
 
     def test_smoketest(self) -> None:
         """Run on a dummy image for basic sanity."""
