@@ -1,7 +1,9 @@
-import numpy as np
-from typing import Tuple, Iterable, Dict, Hashable, List
 import importlib.util
+import logging
+from typing import Tuple, Iterable, Dict, Hashable, List, Union
 from types import MethodType
+
+import numpy as np
 
 try:
     import torch  # type: ignore
@@ -17,10 +19,22 @@ from smqtk_detection.interfaces.detect_image_objects import DetectImageObjects
 from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
+LOG = logging.getLogger(__name__)
+
+
 class ResNetFRCNN(DetectImageObjects):
     """
     ``DetectImageObjects`` implementation using ``torchvision``'s Faster R-CNN
     with a ResNet-50-FPN backbone, pretrained on COCO train2017.
+
+    :param box_thresh: Confidence threshold for detections.
+    :param num_dets: Maximum number of detections per image.
+    :param img_batch_size: Batch size in images for inferences.
+    :param use_cuda: Attempt to use a cuda device for inferences. If no
+        device is found, CPU is used.
+    :param cuda_device: When using CUDA use the device by the given ID. By
+        default, this refers to GPU ID 0. This parameter is not used if
+        `use_cuda` is false.
     """
 
     def __init__(
@@ -28,53 +42,70 @@ class ResNetFRCNN(DetectImageObjects):
         box_thresh: float = 0.05,
         num_dets: int = 100,
         img_batch_size: int = 1,
-        use_cuda: bool = True,
+        use_cuda: bool = False,
+        cuda_device: Union[int, str] = "cuda:0",
     ):
-        """
-        :param box_thresh: Confidence threshold for detections.
-        :param num_dets: Maximum number of detections per image.
-        :param img_batch_size: Batch size in images for inferences.
-        :param use_cuda: Attempt to use a cuda device for inferences. If no
-            device is found, CPU is used.
-        """
-
         self.box_thresh = box_thresh
         self.num_dets = num_dets
         self.img_batch_size = img_batch_size
+        self.use_cuda = use_cuda
+        self.cuda_device = cuda_device
 
-        self.model = models.detection.fasterrcnn_resnet50_fpn(
-            pretrained=True,
-            progress=False,
-            box_detections_per_img=num_dets,
-            box_score_thresh=box_thresh
-        )
+        # Set to None for lazy loading later.
+        self.model: torch.nn.Module = None  # type: ignore
+        self.model_device: torch.device = None  # type: ignore
 
-        self.model = self.model.eval()
-
-        if torch.cuda.is_available() and use_cuda:
-            self.use_cuda = True
-            self.model = self.model.cuda()
-        else:
-            self.use_cuda = False
-
+        # The model already has normalization and resizing baked into the
+        # layers.
         self.model_loader = transforms.Compose([
-            transforms.ToPILImage(),
             transforms.ToTensor(),
         ])
 
-        self.model.roi_heads.postprocess_detections = MethodType(_postprocess_detections, self.model.roi_heads)
+    def get_model(self) -> "torch.nn.Module":
+        """
+        Lazy load the torch model in an idempotent manner.
+
+        :raises RuntimeError: Use of CUDA was requested but is not available.
+        """
+        model = self.model
+        if model is None:
+            model = models.detection.fasterrcnn_resnet50_fpn(
+                pretrained=True,
+                progress=False,
+                box_detections_per_img=self.num_dets,
+                box_score_thresh=self.box_thresh
+            )
+            model = model.eval()
+            model_device = torch.device('cpu')
+            if self.use_cuda:
+                if torch.cuda.is_available():
+                    model_device = torch.device(device=self.cuda_device)
+                    model = model.to(device=model_device)
+                else:
+                    raise RuntimeError(
+                        "Use of CUDA requested, but not available."
+                    )
+            model.roi_heads.postprocess_detections = (
+                MethodType(_postprocess_detections, model.roi_heads)
+            )
+            # store the loaded model for later return.
+            self.model = model
+            self.model_device = model_device
+        return model
 
     def detect_objects(
         self,
         img_iter: Iterable[np.ndarray]
     ) -> Iterable[Iterable[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
+        formatted_dets = []  # AxisAlignedBoundingBox detections to return
+        model = self.get_model()
 
-        formatted_dets = []       # AxisAlignedBoundingBox detections to return
-
-        img_tensors = [self.model_loader(img) for img in img_iter]
+        img_list = list(img_iter)
+        img_tensors = [self.model_loader(img) for img in img_list]
 
         if self.use_cuda:
-            img_tensors = [tensor.cuda() for tensor in img_tensors]
+            img_tensors = [tensor.to(device=self.model_device)
+                           for tensor in img_tensors]
 
         # split into batches
         batches = []
@@ -82,10 +113,9 @@ class ResNetFRCNN(DetectImageObjects):
             batches.append(img_tensors[i: i + self.img_batch_size])
 
         with torch.no_grad():
-            all_img_dets = sum([self.model(batch) for batch in batches], [])  # type: List[Dict]
+            all_img_dets = sum([model(batch) for batch in batches], [])  # type: List[Dict]
 
         for img_dets in all_img_dets:
-
             bboxes = img_dets['boxes'].cpu().numpy()
             scores = img_dets['scores'].cpu().numpy()
 
@@ -96,9 +126,10 @@ class ResNetFRCNN(DetectImageObjects):
             score_dicts = []
 
             for img_scores in scores:
-                score_dict = {}     # type: Dict[Hashable, float]
-                for i, n in enumerate(img_scores):
-                    score_dict[i+1] = n         # Scores returned start at COCO i.d. 1
+                score_dict = {}  # type: Dict[Hashable, float]
+                # Scores returned start at COCO i.d. 1
+                for i, n in enumerate(img_scores, start=1):
+                    score_dict[COCO_INSTANCE_CATEGORY_NAMES[i]] = n
                 score_dicts.append(score_dict)
 
             formatted_dets.append(list(zip(a_bboxes, score_dicts)))
@@ -111,11 +142,11 @@ class ResNetFRCNN(DetectImageObjects):
             "num_dets": self.num_dets,
             "img_batch_size": self.img_batch_size,
             "use_cuda": self.use_cuda,
+            "cuda_device": self.cuda_device,
         }
 
     @classmethod
-    def is_usable(self) -> bool:
-
+    def is_usable(cls) -> bool:
         # check for optional dependencies
         torch_spec = importlib.util.find_spec('torch')
         torchvision_spec = importlib.util.find_spec('torchvision')
@@ -195,5 +226,22 @@ try:
             all_labels.append(labels)
 
         return all_boxes, all_scores, all_labels
+
+    # Labels for this pretrained model are detailed here
+    # https://pytorch.org/vision/stable/models.html#object-detection-instance-segmentation-and-person-keypoint-detection
+    COCO_INSTANCE_CATEGORY_NAMES = (
+        '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+        'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
+        'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+        'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
+        'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+        'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
+        'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+        'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+        'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
+        'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+        'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
+        'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
+    )
 except NameError:
     pass
