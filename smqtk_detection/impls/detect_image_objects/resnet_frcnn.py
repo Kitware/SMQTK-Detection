@@ -130,6 +130,8 @@ class ResNetFRCNN(DetectImageObjects):
                 # Scores returned start at COCO i.d. 1
                 for i, n in enumerate(img_scores, start=1):
                     score_dict[COCO_INSTANCE_CATEGORY_NAMES[i]] = n
+                # Don't bother publishing the clobbered "N/A" category.
+                del score_dict[COCO_INSTANCE_CATEGORY_NAMES_NA]
                 score_dicts.append(score_dict)
 
             formatted_dets.append(list(zip(a_bboxes, score_dicts)))
@@ -243,5 +245,6 @@ try:
         'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
         'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
     )
+    COCO_INSTANCE_CATEGORY_NAMES_NA = "N/A"
 except NameError:
     pass
