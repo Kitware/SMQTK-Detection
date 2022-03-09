@@ -22,6 +22,12 @@ Detect Image Objects
 Fixes
 -----
 
+Detect Image Object
+
+* Fixed batched operation memory usage in `ResNetFRCNN` by loading only current
+  batch into computation device memory. Previously all images were loaded at
+  once.
+
 Dependency Versions
 
 * Updated the developer dependency and locked version of ipython to address a
