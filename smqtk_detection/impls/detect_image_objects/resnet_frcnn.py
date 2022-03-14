@@ -97,27 +97,51 @@ class ResNetFRCNN(DetectImageObjects):
         self,
         img_iter: Iterable[np.ndarray]
     ) -> Iterable[Iterable[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
-        formatted_dets = []  # AxisAlignedBoundingBox detections to return
+
         model = self.get_model()
 
-        img_list = list(img_iter)
-        img_tensors = [self.model_loader(img) for img in img_list]
+        # batch model passes
+        all_img_dets = []  # type: List[Dict]
+        batch = []
+        batch_idx = 0
+        for img in img_iter:
+            batch.append(img)
 
-        if self.use_cuda:
-            img_tensors = [tensor.to(device=self.model_device)
-                           for tensor in img_tensors]
+            if len(batch) is self.img_batch_size:
+                batch_tensors = [self.model_loader(batch_img).to(device=self.model_device) for batch_img in batch]
 
-        # split into batches
-        batches = []
-        for i in range(0, len(img_tensors), self.img_batch_size):
-            batches.append(img_tensors[i: i + self.img_batch_size])
+                with torch.no_grad():
+                    img_dets = model(batch_tensors)
 
-        with torch.no_grad():
-            all_img_dets = sum([model(batch) for batch in batches], [])  # type: List[Dict]
+                for det in img_dets:
+                    det['boxes'] = det['boxes'].cpu().numpy()
+                    det['scores'] = det['scores'].cpu().numpy()
+                    all_img_dets.append(det)
 
+                batch = []
+
+                batch_idx += 1
+                LOG.info(f"{batch_idx} batches computed")
+
+        # compute leftover batch
+        if len(batch) > 0:
+            batch_tensors = [self.model_loader(batch_img).to(device=self.model_device) for batch_img in batch]
+
+            with torch.no_grad():
+                img_dets = model(batch_tensors)
+
+            for det in img_dets:
+                det['boxes'] = det['boxes'].cpu().numpy()
+                det['scores'] = det['scores'].cpu().numpy()
+                all_img_dets.append(det)
+
+            batch_idx += 1
+            LOG.info(f"{batch_idx} batches computed")
+
+        formatted_dets = []  # AxisAlignedBoundingBox detections to return
         for img_dets in all_img_dets:
-            bboxes = img_dets['boxes'].cpu().numpy()
-            scores = img_dets['scores'].cpu().numpy()
+            bboxes = img_dets['boxes']
+            scores = img_dets['scores']
 
             a_bboxes = [AxisAlignedBoundingBox(
                 [box[0], box[1]], [box[2], box[3]]
