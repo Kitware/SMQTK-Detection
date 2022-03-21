@@ -28,6 +28,9 @@ Detect Image Object
   batch into computation device memory. Previously all images were loaded at
   once.
 
+* Fixed device mapping when loading certain background architectures for
+  `CenterNetVisdrone`.
+
 Dependency Versions
 
 * Updated the developer dependency and locked version of ipython to address a
