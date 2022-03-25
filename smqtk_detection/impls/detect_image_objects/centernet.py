@@ -142,6 +142,8 @@ class CenterNetVisdrone(DetectImageObjects):
         self.out_w = self.input_w // 2
 
         self.num_classes = 10
+        assert self.num_classes == len(CLASS_NAMES), \
+            "Mismatch in num_classes record and actual list of class names."
 
         # visdrone2019 mean and standard deviation, used for normalization
         self.mean = np.asarray([[[0.372949, 0.37837514, 0.36463863]]], dtype=np.float32)
@@ -349,20 +351,17 @@ class CenterNetVisdrone(DetectImageObjects):
         Converts detection matrix to the format required by the
         ``DetectImageObjects`` interface.
         """
-
         # empty dict to fill
-        # applicable visdrone classes start at 1
-        zero_dict = {i: 0 for i in range(1, self.num_classes+1)}  # type: Dict[Hashable, float]
-
+        zero_dict: Dict[Hashable, float] = {lbl: 0. for lbl in CLASS_NAMES}
+        # batch round and cast index column.
+        class_indices = dets_mat[:, 5].round().astype(int)
+        # Create and collect tuples.
         dets_list = []
-        for det in dets_mat:
+        for det, cls_idx in zip(dets_mat, class_indices):
             bbox = AxisAlignedBoundingBox(det[0:2], det[2:4])
-
             class_dict = zero_dict.copy()
-            class_dict[det[5] + 1] = det[4]
-
+            class_dict[CLASS_NAMES[cls_idx]] = det[4]
             dets_list.append((bbox, class_dict))
-
         return dets_list
 
     def get_config(self) -> dict:
@@ -391,6 +390,8 @@ class CenterNetVisdrone(DetectImageObjects):
 
 
 if usable:
+    CLASS_NAMES = ['pedestrian', 'people', 'bicycle', 'car', 'van', 'truck',
+                   'tricycle', 'awning-tricycle', 'bus', 'motor']
 
     class _ImageDataset(Dataset):
         """

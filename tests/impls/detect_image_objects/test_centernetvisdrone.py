@@ -182,7 +182,8 @@ def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
     """
     Mock model forward results.
     Trying to simulate the model outputting one detection from (1,1) to (7,7)
-    with confidence 0.99 in the first class.
+    with confidence 0.99 in the first class (exact conf value changes because
+    of the sigmoid).
     """
     import torch  # type: ignore
     batch_size = len(img_tensors)
