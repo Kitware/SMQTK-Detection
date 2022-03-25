@@ -864,7 +864,7 @@ if usable:
                                     nn.init.normal_(m.weight, std=0.001)
                                     nn.init.constant_(m.bias, 0)
 
-                pretrained_state_dict = model_zoo.load_url(url)
+                pretrained_state_dict = model_zoo.load_url(url, map_location='cpu')
                 logger.info("=> loading pretrained model {}".format(url))
                 self.load_state_dict(pretrained_state_dict, strict=False)
 
