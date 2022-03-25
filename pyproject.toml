@@ -55,6 +55,8 @@ livereload = "^2.6.3"
 coverage = "^6"
 pytest = "^6"
 pytest-cov = "^3"
+requests = "^2.26.0"
+types-requests = "^2.26.0"
 # Development
 ipython = "^7.16.3"
 

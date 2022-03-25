@@ -23,10 +23,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from typing import Iterable, Tuple, Dict, Hashable, List
+from typing import Iterable, Tuple, Dict, Hashable, List, Optional
 import numpy as np
 import math
 import logging
+import warnings
 
 try:
     import torch  # type: ignore
@@ -66,7 +67,7 @@ class CenterNetVisdrone(DetectImageObjects):
         scales: List[float] = None,
         flip: bool = False,
         nms: bool = True,
-        use_cuda: bool = True,
+        use_cuda: bool = False,
         batch_size: int = 1,
         num_workers: int = 0,
     ):
@@ -97,7 +98,7 @@ class CenterNetVisdrone(DetectImageObjects):
         :param num_workers: Number of subprocesses to use for data loading.
 
         """
-        model_urls = {
+        self.model_urls = {
             "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
             "resnet34": "https://download.pytorch.org/models/resnet34-333f7ec4.pth",
             "resnet50": "https://download.pytorch.org/models/resnet50-19c8e357.pth",
@@ -106,7 +107,7 @@ class CenterNetVisdrone(DetectImageObjects):
             "res2net50": "https://shanghuagao.oss-cn-beijing.aliyuncs.com/res2net/res2net50_v1b_26w_4s-3cf99910.pth",
             "res2net101": "https://shanghuagao.oss-cn-beijing.aliyuncs.com/res2net/res2net101_v1b_26w_4s-0812c246.pth",
         }
-        resnet_spec = {
+        self.resnet_spec = {
             "resnet18": (_ResNet, _BasicBlock_ResNet, [2, 2, 2, 2]),
             "resnet34": (_ResNet, _BasicBlock_ResNet, [3, 4, 6, 3]),
             "resnet50": (_ResNet, _Bottleneck_ResNet, [3, 4, 6, 3]),
@@ -115,8 +116,9 @@ class CenterNetVisdrone(DetectImageObjects):
             "res2net50": (_Res2Net, _Bottleneck_Res2Net, [3, 4, 6, 3]),
             "res2net101": (_Res2Net, _Bottleneck_Res2Net, [3, 4, 23, 3]),
         }
-
-        heads = {'hm': 10, 'wh': 2, 'reg': 2}   # type: Dict[Hashable, int]
+        if arch not in self.model_urls:
+            raise ValueError(f"Invalid architecture provided. Must be one of: "
+                             f"{list(self.model_urls)}")
 
         self.arch = arch
         self.model_file = model_file
@@ -154,11 +156,20 @@ class CenterNetVisdrone(DetectImageObjects):
         else:
             self.device = torch.device('cpu')
 
-        self.model = _CenterNet(resnet_spec[self.arch], heads)
-        self.model.init_weights(model_urls[self.arch], pretrained=True)
-        self.model = self.model.to(self.device)
-        self.model = _load_model(self.model, model_file)
-        self.model = self.model.eval()
+        self.model: Optional[_CenterNet] = None
+
+    def _get_model(self) -> "_CenterNet":
+        """
+        Lazy initialize the model. Idempotent.
+        """
+        if self.model is None:
+            heads = {'hm': 10, 'wh': 2, 'reg': 2}   # type: Dict[Hashable, int]
+            model = _CenterNet(self.resnet_spec[self.arch], heads)
+            model.init_weights(self.model_urls[self.arch], pretrained=True)
+            model = model.to(self.device)
+            self.model = model = _load_model(model, self.model_file)
+            model.eval()
+        return self.model
 
     def detect_objects(
         self,
@@ -167,6 +178,7 @@ class CenterNetVisdrone(DetectImageObjects):
 
         img_set = _ImageDataset(img_iter, self.flip, self.scales, self._preprocess_img)
         batch_loader = DataLoader(img_set, batch_size=self.batch_size, num_workers=self.num_workers)
+        model = self._get_model()
 
         # need to match flipped batched outputs if using flip and batch size is odd
         align_needed = self.flip and self.batch_size % 2 != 0
@@ -186,7 +198,7 @@ class CenterNetVisdrone(DetectImageObjects):
             trans_scales = trans_scales.cpu().numpy()
 
             with torch.no_grad():
-                output = self.model(img_tensor)
+                output = model(img_tensor)
 
             score_maps = output['hm'].sigmoid_()  # detection scores
             size_maps = output['wh']  # bbox sizes
@@ -358,14 +370,23 @@ class CenterNetVisdrone(DetectImageObjects):
             "arch": self.arch,
             "model_file": self.model_file,
             "max_dets": self.max_dets,
-            "K": self.k,
+            "k": self.k,
             "scales": self.scales,
             "flip": self.flip,
-            "use_cuda": self.use_cuda
+            "nms": self.nms,
+            "use_cuda": self.use_cuda,
+            "batch_size": self.batch_size,
+            "num_workers": self.num_workers,
         }
 
     @classmethod
     def is_usable(cls) -> bool:
+        if not usable:
+            warnings.warn(
+                f"CenterNetVisdrone is not usable. Dep status: "
+                f"{ {k: (v is not None) for k, v in zip(deps, specs)} }",
+                RuntimeWarning,
+            )
         return usable
 
 
