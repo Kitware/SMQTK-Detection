@@ -484,7 +484,7 @@ if usable:
         model.load_state_dict(state_dict, strict=False)
 
         # resume optimizer parameters
-        if optimizer is not None:
+        if optimizer is not None:  # not used in smqtk use-case  # pragma: no cover
             if "optimizer" in checkpoint:
                 optimizer.load_state_dict(checkpoint["optimizer"])
                 start_epoch = checkpoint["epoch"]
@@ -498,7 +498,7 @@ if usable:
                 logger.info("Resumed optimizer with start lr", start_lr)
             else:
                 logger.info("No optimizer parameters in checkpoint.")
-        if optimizer is not None:
+        if optimizer is not None:  # not used in smqtk use-case  # pragma: no cover
             return model, optimizer, start_epoch
         else:
             return model
@@ -648,7 +648,7 @@ if usable:
         Nt=0.3,
         threshold=0.001,
         method=0
-    ):
+    ):  # pragma: no cover
         N = boxes.shape[0]
         pos = 0
         maxscore = 0
