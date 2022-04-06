@@ -49,6 +49,8 @@ class TestResNetFRCNN:
         Test that when requesting cuda when it's not available results in a
         RuntimeError.
         """
+        # Model constructor mocked because we don't actually want/need/shouldn't
+        # have to allocate model resources for this test.
         m_torch_cuda.return_value = False
 
         inst = ResNetFRCNN(use_cuda=True)

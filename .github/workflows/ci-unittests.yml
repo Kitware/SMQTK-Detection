@@ -91,6 +91,7 @@ jobs:
         opt-extra: [
             "",  # no extras
             "torch",
+            "centernet",
         ]
       # We want all python versions tested even if one of them happens to fail
       fail-fast: false
@@ -126,6 +127,25 @@ jobs:
           if [[ -n "$OPT_EXTRA" ]]
           then
             poetry install --extras "$OPT_EXTRA"
+          fi
+
+      # If OpenCV python package `opencv-python` is installed, replace it with
+      # the same version of `opencv-python-headless`. This is needed because
+      # "normal" `opencv-python` has graphics library requirements that are not
+      # required, but `opencv-python` is the standard library to depend on.
+      # NOTE: need to include opencv-python-headless in uninstall to clear away
+      #       a possibly cached installation.
+      - name: Replace OpenCV with Headless
+        run: |
+          export PIP_LIST="$(poetry run pip list --format=json)"
+          if (echo "$PIP_LIST" | poetry run ./scripts/pycv2_is_installed.py)
+          then
+            echo "OpenCV-Python installed, replacing with equivalent headless version."
+            VERSION="$(echo "$PIP_LIST" | poetry run  ./scripts/pycv2_installed_version.py)"
+            poetry run pip uninstall -y opencv-python opencv-python-headless
+            poetry run pip install --no-deps opencv-python-headless=="$VERSION"
+          else
+            echo "OpenCV-Python NOT installed, skipping."
           fi
 
       - name: Run Unittests

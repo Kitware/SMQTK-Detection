@@ -19,6 +19,15 @@ Detect Image Objects
   instead of integers, reducing the burden of users from having to repeatedly
   find and allocate the appropriate int-to-label map.
 
+* Update `CenterNetVisdrone` to lazy load its model on first inference.
+
+* Update `CenterNetVisdrone` to return VisDrone class labels instead of
+  integers.
+
+Unit Tests
+
+* Added unit tests for the `CenterNetVisdrone` plugin.
+
 Fixes
 -----
 
