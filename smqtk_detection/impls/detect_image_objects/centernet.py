@@ -29,6 +29,8 @@ import math
 import logging
 import warnings
 
+from smqtk_image_io import AxisAlignedBoundingBox
+
 try:
     import torch  # type: ignore
     from torch.cuda.amp import autocast  # type: ignore
@@ -41,7 +43,6 @@ except ModuleNotFoundError:
     pass
 
 from smqtk_detection import DetectImageObjects
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 from importlib.util import find_spec
 deps = ['torch', 'cv2', 'numba']

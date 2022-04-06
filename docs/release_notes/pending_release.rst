@@ -28,6 +28,11 @@ Unit Tests
 
 * Added unit tests for the `CenterNetVisdrone` plugin.
 
+Utilities
+
+* Remove duplicate implementation of `AxisAlignedBoundingBox`, using the tested
+  version that comes from the ``smqtk_image_io`` package.
+
 Fixes
 -----
 

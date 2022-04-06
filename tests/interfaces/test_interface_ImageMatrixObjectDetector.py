@@ -2,10 +2,11 @@ import unittest.mock as mock
 import numpy
 from typing import Any, Dict, Iterator, Tuple, Hashable
 
-from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
-from smqtk_image_io.interfaces.image_reader import ImageReader
 from smqtk_dataprovider.interfaces.data_element import DataElement
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_image_io import AxisAlignedBoundingBox
+from smqtk_image_io.interfaces.image_reader import ImageReader
+
+from smqtk_detection.interfaces.object_detector import ImageMatrixObjectDetector
 
 
 def test_get_default_config() -> None:
