@@ -1,11 +1,12 @@
+from typing import Any, Dict, Tuple, Union
 import unittest.mock as mock
+
+from smqtk_classifier.interfaces.classification_element import ClassificationElement
+from smqtk_image_io.bbox import AxisAlignedBoundingBox
 import pytest
 
 from smqtk_detection.exceptions import NoDetectionError
 from smqtk_detection.interfaces.detection_element import DetectionElement
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
-from smqtk_classifier.interfaces.classification_element import ClassificationElement
-from typing import Any, Dict, Tuple, Union
 
 
 ###############################################################################

@@ -4,6 +4,7 @@ from typing import Tuple, Iterable, Dict, Hashable, List, Union
 from types import MethodType
 
 import numpy as np
+from smqtk_image_io import AxisAlignedBoundingBox
 
 try:
     import torch  # type: ignore
@@ -16,7 +17,6 @@ except ModuleNotFoundError:
     pass
 
 from smqtk_detection.interfaces.detect_image_objects import DetectImageObjects
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
 LOG = logging.getLogger(__name__)
