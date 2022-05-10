@@ -1,5 +1,11 @@
 v0.19.0
 =======
+This minor release includes refinements to the `DetectImageObjects` plugins,
+including a change to return semantic class labels instead of just integers,
+reducing the need for the caller to know intrinsics about the plugin/model in
+order to use it.
+
+See below for additional updates and fixes.
 
 Updates / New Features
 ----------------------
