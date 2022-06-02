@@ -3,7 +3,7 @@ from typing import Iterable, Hashable, Dict, Tuple
 import numpy as np
 
 from smqtk_core import Configurable, Pluggable
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_image_io import AxisAlignedBoundingBox
 
 
 class DetectImageObjects (Configurable, Pluggable):

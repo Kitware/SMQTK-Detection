@@ -4,7 +4,7 @@ import unittest.mock as mock
 import pytest
 
 from smqtk_detection.exceptions import NoDetectionError
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_image_io import AxisAlignedBoundingBox
 from smqtk_classifier.interfaces.classification_element import ClassificationElement
 from smqtk_classifier.impls.classification_element.memory \
     import MemoryClassificationElement

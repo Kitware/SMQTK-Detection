@@ -13,6 +13,9 @@ on:
     branches:
       - master
       - release*
+  schedule:
+    # Nightly run unit tests to check for implicit dependency issues between pull requests.
+    - cron: '0 0 * * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -87,6 +90,8 @@ jobs:
         # Extras for included, optional plugin support (space-separated lists)
         opt-extra: [
             "",  # no extras
+            "torch",
+            "centernet",
         ]
       # We want all python versions tested even if one of them happens to fail
       fail-fast: false
@@ -114,6 +119,7 @@ jobs:
       - name: Setup Environment
         # See: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-using-a-public-action-in-a-subdirectory
         uses: Kitware/SMQTK-Core/.github/actions/python-poetry-setup@master
+
       - name: Optionally install additional requirements
         env:
           OPT_EXTRA: ${{ matrix.opt-extra }}
@@ -122,5 +128,33 @@ jobs:
           then
             poetry install --extras "$OPT_EXTRA"
           fi
+
+      # If OpenCV python package `opencv-python` is installed, replace it with
+      # the same version of `opencv-python-headless`. This is needed because
+      # "normal" `opencv-python` has graphics library requirements that are not
+      # required, but `opencv-python` is the standard library to depend on.
+      # NOTE: need to include opencv-python-headless in uninstall to clear away
+      #       a possibly cached installation.
+      - name: Replace OpenCV with Headless
+        run: |
+          export PIP_LIST="$(poetry run pip list --format=json)"
+          if (echo "$PIP_LIST" | poetry run ./scripts/pycv2_is_installed.py)
+          then
+            echo "OpenCV-Python installed, replacing with equivalent headless version."
+            VERSION="$(echo "$PIP_LIST" | poetry run  ./scripts/pycv2_installed_version.py)"
+            poetry run pip uninstall -y opencv-python opencv-python-headless
+            poetry run pip install --no-deps opencv-python-headless=="$VERSION"
+          else
+            echo "OpenCV-Python NOT installed, skipping."
+          fi
+
       - name: Run Unittests
-        run: poetry run pytest --cov=smqtk_detection --cov-report=xml
+        run: poetry run pytest
+
+      - name: CodeCov report submission
+        if: ${{ github.event_name != 'schedule' }}
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+          files: coverage.xml
+          flags: unittests

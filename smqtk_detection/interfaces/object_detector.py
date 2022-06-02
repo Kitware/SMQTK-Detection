@@ -17,7 +17,7 @@ from smqtk_core.configuration import (
 from smqtk_classifier._defaults import DFLT_CLASSIFIER_FACTORY
 from smqtk_detection._defaults import DFLT_DETECTION_FACTORY
 
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
+from smqtk_image_io import AxisAlignedBoundingBox
 from smqtk_detection.interfaces.detection_element import DetectionElement
 from smqtk_detection.detection_element_factory \
     import DetectionElementFactory

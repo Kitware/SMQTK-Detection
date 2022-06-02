@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "smqtk-detection"
-version = "0.18.1"
+version = "0.19.0"
 description = "Algorithms, data structures and utilities around performing detection of inputs"
 license = "BSD-3-Clause"
 authors = ["Kitware, Inc. <smqtk-developers@kitware.com>"]
@@ -55,9 +55,10 @@ livereload = "^2.6.3"
 coverage = "^6"
 pytest = "^6"
 pytest-cov = "^3"
+requests = "^2.26.0"
+types-requests = "^2.26.0"
 # Development
-ipython = "^7.16.1"
-jedi = "^0.17.2"
+ipython = "^7.16.3"
 
 [tool.poetry.plugins."smqtk_plugins"]
 # Detection Element
@@ -68,11 +69,13 @@ jedi = "^0.17.2"
 
 [tool.pytest.ini_options]
 addopts = [
-    "-lv",                      # Show local in trace-backs.
-    "--doctest-modules",        # Increased verbosity.
-    "--tb=long",                # Trace-back print mode.
-    "--cov=smqtk_detection",    # Cover our package specifically
-    "--cov-report=term",        # Coverage report to terminal
+    "-lv",                          # Show local in trace-backs.
+    "--doctest-modules",            # Increased verbosity.
+    "--tb=long",                    # Trace-back print mode.
+    "--cov=./smqtk_detection",      # Cover our package specifically
+    "--cov=./tests",                # Also cover our tests for dead spots
+    "--cov-report=term",            # Coverage report to terminal
+    "--cov-report=xml:coverage.xml" # For external tool reporting
 ]
 testpaths = [
     "tests",

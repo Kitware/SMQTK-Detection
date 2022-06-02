@@ -1,9 +1,10 @@
 from random import randrange
-import numpy as np
 from typing import Iterable, Tuple, Dict, Hashable, Sequence
 
+import numpy as np
+from smqtk_image_io import AxisAlignedBoundingBox
+
 from smqtk_detection.interfaces.detect_image_objects import DetectImageObjects
-from smqtk_detection.utils.bbox import AxisAlignedBoundingBox
 
 
 class RandomDetector(DetectImageObjects):
