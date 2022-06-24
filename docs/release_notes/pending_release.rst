@@ -10,3 +10,9 @@ Build
 
 Fixes
 -----
+
+Docs
+
+* Fix erroneous references to previous monorepo.
+
+* Fixed ``sphinx_server.py`` to reference correct directories.
