@@ -126,8 +126,6 @@ class MMDetectionBase(DetectImageObjects):
         img_iter: Iterable[np.array]
     )-> Iterable[Iterable[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
         model = self._lazy_load_model()
-        print("model", model)
-        print("loaded model", self._classes)
         batch = []
         with torch.no_grad():
             for batch_input in img_iter:
@@ -138,7 +136,6 @@ class MMDetectionBase(DetectImageObjects):
                 batch_output = self._forward(model, batch)
                 # For each output, yield an iteration converting outputs into
                 # the interface-defined data-types
-                print("batch out", len(batch_output))
                 for output_dict in batch_output:
                     yield self._format_detections(output_dict)
                 batch = []
@@ -170,7 +167,6 @@ class MMDetectionBase(DetectImageObjects):
             preds
     ):
         # Empty dict to fill
-        print(self._classes)
         zero_dict: Dict[Hashable, float] = {lbl: 0. for lbl in self._classes}
 
         # Loop over each prediction and format result
@@ -181,7 +177,6 @@ class MMDetectionBase(DetectImageObjects):
             for i, bbox in enumerate(pred):
                 a_bboxes.append(AxisAlignedBoundingBox(
                     [bbox[0], bbox[1]], [bbox[2], bbox[3]]))
-                #print(i, len(self._classes))
                 class_dict = zero_dict.copy()
                 class_dict[self._classes[i]] = bbox[4]
                 score_dicts.append(class_dict)
