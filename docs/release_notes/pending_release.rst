@@ -10,8 +10,10 @@ Build
 
 Dependencies
 
-* Update abstract requirement for numba to open up supported python version
-  beyond python 3.9.
+* Updated python minimum requirement to 3.7 (up from 3.6). Thin involved a
+  number of updates and bifurcations of abstract requirements, an update to
+  pinned versions for development/CI, and expansion of CI to cover python
+  versions 3.10 and 3.11 (latest current release).
 
 Fixes
 -----
