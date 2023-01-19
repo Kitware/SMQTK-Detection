@@ -2,7 +2,7 @@ from typing import Dict
 import unittest.mock as mock
 
 import numpy as np
-import py.path
+import py.path  # type: ignore
 import pytest
 import requests
 from smqtk_core.configuration import configuration_test_helper
@@ -36,7 +36,7 @@ def centernet_resnet18_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.lo
     """
     Download the resnet18 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_resnet18.pth"
+    f = tmpdir_factory.getbasetemp() / "centernet_resnet18.pth"  # type: ignore[operator]
     r = requests.get(MODEL_URL_RESNET18)
     f.write_binary(r.content)
     return f
@@ -47,7 +47,7 @@ def centernet_resnet50_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.lo
     """
     Download the resnet50 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_resnet50.pth"
+    f = tmpdir_factory.getbasetemp() / "centernet_resnet50.pth"  # type: ignore[operator]
     r = requests.get(MODEL_URL_RESNET50)
     f.write_binary(r.content)
     return f
@@ -58,7 +58,7 @@ def centernet_res2net50_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.l
     """
     Download the res2net50 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_res2net50.pth"
+    f = tmpdir_factory.getbasetemp() / "centernet_res2net50.pth"  # type: ignore[operator]
     r = requests.get(MODEL_URL_RES2NET50)
     f.write_binary(r.content)
     return f

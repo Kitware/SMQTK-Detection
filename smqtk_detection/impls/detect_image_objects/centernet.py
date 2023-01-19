@@ -65,7 +65,7 @@ class CenterNetVisdrone(DetectImageObjects):
         model_file: str,
         max_dets: int = 100,
         k: int = 500,
-        scales: List[float] = None,
+        scales: Optional[List[float]] = None,
         flip: bool = False,
         nms: bool = True,
         use_cuda: bool = False,

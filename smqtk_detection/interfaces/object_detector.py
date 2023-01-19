@@ -302,9 +302,14 @@ class ImageMatrixObjectDetector (ObjectDetector, metaclass=abc.ABCMeta):
                                       dict[collections.abc.Hashable, float])]
 
         """
-        return self._detect_objects_matrix(
-            self._image_reader.load_as_matrix(data)
-        )
+        matrix_data = self._image_reader.load_as_matrix(data)
+        # If there is no matrix data loadable from the input data, then we
+        # cannot detect anything.
+        if matrix_data is None:
+            raise RuntimeError("No input matrix loadable data from the "
+                               "provided data element. Cannot detect "
+                               "anything.")
+        return self._detect_objects_matrix(matrix_data)
 
     @abc.abstractmethod
     def _detect_objects_matrix(self, mat: numpy.ndarray) \
