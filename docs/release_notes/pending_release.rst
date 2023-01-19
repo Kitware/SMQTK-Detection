@@ -8,6 +8,11 @@ Build
 
 * Remove explicit cap to the python version.
 
+Dependencies
+
+* Update abstract requirement for numba to open up supported python version
+  beyond python 3.9.
+
 Fixes
 -----
 

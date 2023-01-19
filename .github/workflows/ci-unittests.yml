@@ -31,7 +31,7 @@ defaults:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container: python:3.6
+    container: python:3.7
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
           path: |
             ~/.cache/pypoetry/virtualenvs/
             ~/.local
-          key: python-3.6-${{ hashFiles('poetry.lock') }}
+          key: python-3.7-${{ hashFiles('poetry.lock') }}
       - name: Setup Environment
         # See: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-using-a-public-action-in-a-subdirectory
         uses: Kitware/SMQTK-Core/.github/actions/python-poetry-setup@master
@@ -58,7 +58,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
-    container: python:3.6
+    container: python:3.7
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
@@ -75,7 +75,7 @@ jobs:
           path: |
             ~/.cache/pypoetry/virtualenvs/
             ~/.local
-          key: python-3.6-${{ hashFiles('poetry.lock') }}
+          key: python-3.7-${{ hashFiles('poetry.lock') }}
       - name: Setup Environment
         # See: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#example-using-a-public-action-in-a-subdirectory
         uses: Kitware/SMQTK-Core/.github/actions/python-poetry-setup@master
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         # Extras for included, optional plugin support (space-separated lists)
         opt-extra: [
             "",  # no extras
@@ -153,8 +153,9 @@ jobs:
 
       - name: CodeCov report submission
         if: ${{ github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           files: coverage.xml
           flags: unittests
