@@ -126,6 +126,10 @@ jobs:
         run: |
           if [[ -n "$OPT_EXTRA" ]]
           then
+            # Workaround: Poetry 1.4.1 introduced stricter checks on wheels
+            # https://github.com/python-poetry/poetry/issues/7686
+            export POETRY_INSTALLER_MODERN_INSTALLATION=false
+
             poetry install --extras "$OPT_EXTRA"
           fi
 
