@@ -19,22 +19,22 @@ classifiers = [
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Unix',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6.2"
+python = "^3.8"
 smqtk-core = ">=0.18.0"
 smqtk-classifier = ">=0.19.0"
 smqtk-dataprovider = ">=0.16.0"
 smqtk-image-io = ">=0.16.2"
-torch = {version = "^1.10.0", optional = true}
-torchvision = {version = "^0.11.1", optional = true}
-opencv-python = {version = "~4.5.2.0", optional = true}
-numba = {version = "~0.53.0", optional = true}
+torch = {version = ">=1.10.0,!=2.0.1", optional = true}
+torchvision = {version = ">=0.11.1", optional = true}
+opencv-python = {version = ">=4.5.2.0", optional = true}
+numba = {version = ">=0.56.4", optional = true}
 
 [tool.poetry.extras]
 torch = [ "torch", "torchvision" ]

@@ -6,7 +6,14 @@ Updates / New Features
 
 Build
 
-* Remove explicit cap to the python version.
+* New minimum supported python changed to `python = "^3.8"`.
+
+Dependencies
+
+* Updated python minimum requirement to 3.8 (up from 3.6). This involved a
+  number of updates and bifurcations of abstract requirements, an update to
+  pinned versions for development/CI, and expansion of CI to cover python
+  versions 3.10 and 3.11 (latest current release).
 
 Fixes
 -----
