@@ -2,7 +2,7 @@ from typing import Dict
 import unittest.mock as mock
 
 import numpy as np
-import py.path
+import pathlib
 import pytest
 import requests
 from smqtk_core.configuration import configuration_test_helper
@@ -31,36 +31,36 @@ def can_reach_internet() -> bool:
     return True
 
 
-@pytest.fixture(scope="session")
-def centernet_resnet18_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.local:
+@pytest.fixture(scope="function")
+def centernet_resnet18_file(tmp_path: pathlib.Path) -> pathlib.Path:
     """
     Download the resnet18 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_resnet18.pth"
+    f = tmp_path / "centernet_resnet18.pth"
     r = requests.get(MODEL_URL_RESNET18)
-    f.write_binary(r.content)
+    f.write_bytes(r.content)
     return f
 
 
-@pytest.fixture(scope="session")
-def centernet_resnet50_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.local:
+@pytest.fixture(scope="function")
+def centernet_resnet50_file(tmp_path: pathlib.Path) -> pathlib.Path:
     """
     Download the resnet50 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_resnet50.pth"
+    f = tmp_path / "centernet_resnet50.pth"
     r = requests.get(MODEL_URL_RESNET50)
-    f.write_binary(r.content)
+    f.write_bytes(r.content)
     return f
 
 
-@pytest.fixture(scope="session")
-def centernet_res2net50_file(tmpdir_factory: pytest.TempdirFactory) -> py.path.local:
+@pytest.fixture(scope="function")
+def centernet_res2net50_file(tmp_path: pathlib.Path) -> pathlib.Path:
     """
     Download the res2net50 model for this test session.
     """
-    f = tmpdir_factory.getbasetemp() / "centernet_res2net50.pth"
+    f = tmp_path / "centernet_res2net50.pth"
     r = requests.get(MODEL_URL_RES2NET50)
-    f.write_binary(r.content)
+    f.write_bytes(r.content)
     return f
 
 
@@ -102,7 +102,7 @@ class TestCenterNetVisdrone:
     @pytest.mark.skipif(not can_reach_internet(),
                         reason="No internet access, test models will not be "
                                "accessible.")
-    def test_smoketest_3channel_resnet18(self, centernet_resnet18_file: py.path.local) -> None:
+    def test_smoketest_3channel_resnet18(self, centernet_resnet18_file: pathlib.Path) -> None:
         """
         Run on a dummy image for basic sanity.
         No value assertions, this is for making sure that as-is functionality
@@ -111,7 +111,7 @@ class TestCenterNetVisdrone:
         """
         dummy_image = np.random.randint(0, 255, (256, 256, 3), dtype=np.uint8)
         inst = CenterNetVisdrone(
-            "resnet18", centernet_resnet18_file.strpath,
+            "resnet18", str(centernet_resnet18_file),
             batch_size=2
         )
         list(inst.detect_objects([dummy_image]))
@@ -119,7 +119,7 @@ class TestCenterNetVisdrone:
     @pytest.mark.skipif(not can_reach_internet(),
                         reason="No internet access, test models will not be "
                                "accessible.")
-    def test_smoketest_3channel_resnet50(self, centernet_resnet50_file: py.path.local) -> None:
+    def test_smoketest_3channel_resnet50(self, centernet_resnet50_file: pathlib.Path) -> None:
         """
         Run on a dummy image for basic sanity.
         No value assertions, this is for making sure that as-is functionality
@@ -128,7 +128,7 @@ class TestCenterNetVisdrone:
         """
         dummy_image = np.random.randint(0, 255, (256, 256, 3), dtype=np.uint8)
         inst = CenterNetVisdrone(
-            "resnet50", centernet_resnet50_file.strpath,
+            "resnet50", str(centernet_resnet50_file),
             batch_size=2
         )
         list(inst.detect_objects([dummy_image]))
@@ -136,7 +136,7 @@ class TestCenterNetVisdrone:
     @pytest.mark.skipif(not can_reach_internet(),
                         reason="No internet access, test models will not be "
                                "accessible.")
-    def test_smoketest_3channel_res2net50(self, centernet_res2net50_file: py.path.local) -> None:
+    def test_smoketest_3channel_res2net50(self, centernet_res2net50_file: pathlib.Path) -> None:
         """
         Run on a dummy image for basic sanity.
         No value assertions, this is for making sure that as-is functionality
@@ -145,7 +145,7 @@ class TestCenterNetVisdrone:
         """
         dummy_image = np.random.randint(0, 255, (256, 256, 3), dtype=np.uint8)
         inst = CenterNetVisdrone(
-            "res2net50", centernet_res2net50_file.strpath,
+            "res2net50", str(centernet_res2net50_file),
             batch_size=2
         )
         list(inst.detect_objects([dummy_image]))
