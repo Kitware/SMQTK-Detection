@@ -3,7 +3,7 @@ import hashlib
 
 import numpy
 
-from typing import Hashable, Set, Iterator, Dict, Tuple, Any, Type, TypeVar
+from typing import Optional, Hashable, Set, Iterator, Dict, Tuple, Any, Type, TypeVar
 
 from smqtk_core import Plugfigurable
 from smqtk_image_io.interfaces.image_reader import ImageReader
@@ -72,7 +72,7 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator, metaclass=abc.ABCMeta
             data_element: DataElement,
             de_factory: DetectionElementFactory = DFLT_DETECTION_FACTORY,
             ce_factory: ClassificationElementFactory = DFLT_CLASSIFIER_FACTORY
-    ) -> Iterator[DetectionElement]:
+    ) -> Optional[Iterator[DetectionElement]]:
         """
         Detect objects in the given data.
 
@@ -109,7 +109,10 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator, metaclass=abc.ABCMeta
         de_uuid = str(data_element.uuid())
 
         type_str = 'object detection classification'
-        for bbox, c_map in self._detect_objects(data_element):
+        dets = self._detect_objects(data_element)
+        if dets is None:
+            return None
+        for bbox, c_map in dets:
             # Determine UUID of detection from bbox and classification labels
             det_uuid = self._gen_detection_uuid(de_uuid, bbox, c_map.keys())
 
@@ -120,7 +123,10 @@ class ObjectDetector (Plugfigurable, ContentTypeValidator, metaclass=abc.ABCMeta
             yield de
 
     @abc.abstractmethod
-    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
+    def _detect_objects(
+            self,
+            data: DataElement
+    ) -> Optional[Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
         """
         Internal method that defines the generation of paired bounding boxes
         and classification maps for detected objects in the given data.
@@ -278,7 +284,10 @@ class ImageMatrixObjectDetector (ObjectDetector, metaclass=abc.ABCMeta):
         """
         return self._image_reader.is_valid_element(data_element)
 
-    def _detect_objects(self, data: DataElement) -> Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]:
+    def _detect_objects(
+            self,
+            data: DataElement
+    ) -> Optional[Iterator[Tuple[AxisAlignedBoundingBox, Dict[Hashable, float]]]]:
         """
         Internal method that defines the generation of paired bounding boxes
         and classification maps for detected objects in the given data.
@@ -302,9 +311,11 @@ class ImageMatrixObjectDetector (ObjectDetector, metaclass=abc.ABCMeta):
                                       dict[collections.abc.Hashable, float])]
 
         """
-        return self._detect_objects_matrix(
-            self._image_reader.load_as_matrix(data)
-        )
+        mat = self._image_reader.load_as_matrix(data)
+        if mat is None:
+            return None
+
+        return self._detect_objects_matrix(mat)
 
     @abc.abstractmethod
     def _detect_objects_matrix(self, mat: numpy.ndarray) \
