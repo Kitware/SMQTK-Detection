@@ -65,7 +65,7 @@ class CenterNetVisdrone(DetectImageObjects):
         model_file: str,
         max_dets: int = 100,
         k: int = 500,
-        scales: List[float] = None,
+        scales: Optional[List[float]] = None,
         flip: bool = False,
         nms: bool = True,
         use_cuda: bool = False,
@@ -451,7 +451,7 @@ if usable:
         checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
         logger.info(f'loaded {model_path}, epoch {checkpoint["epoch"]}')
         state_dict_ = checkpoint["state_dict"]
-        state_dict = {}  # type: Dict[str, torch.Tensor]
+        state_dict = {}
 
         # convert data_parallal to model
         for k in state_dict_:

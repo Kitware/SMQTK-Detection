@@ -84,7 +84,7 @@ def test_detect_objects() -> None:
     m_inst._gen_detection_uuid = \
         mock.Mock(wraps=ObjectDetector._gen_detection_uuid)
 
-    dets_list = list(ObjectDetector.detect_objects(m_inst, t_de1))
+    dets_list = list(ObjectDetector.detect_objects(m_inst, t_de1))  # type: ignore
 
     m_inst._detect_objects.assert_called_once_with(t_de1)
     assert m_inst._gen_detection_uuid.call_count == 2
