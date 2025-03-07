@@ -7,7 +7,12 @@ import pytest
 import requests
 from smqtk_core.configuration import configuration_test_helper
 
-from smqtk_detection.impls.detect_image_objects.centernet import CenterNetVisdrone, _gather_feat, _gather_feat_mps
+from smqtk_detection.impls.detect_image_objects.centernet import CenterNetVisdrone
+
+try:
+    from smqtk_detection.impls.detect_image_objects.centernet import _gather_feat, _gather_feat_mps
+except ImportError:
+    pass
 
 try:
     import torch  # type: ignore
@@ -202,6 +207,8 @@ def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
     }
 
 
+@pytest.mark.skipif(not CenterNetVisdrone.is_usable(),
+                    reason="CenterNetVisdrone is not usable.")
 def test_gather_feat_mps() -> None:
     """
     Check that alternative implementation for torch.gather on MPS
