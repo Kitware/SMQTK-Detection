@@ -7,7 +7,7 @@ import pytest
 import requests
 from smqtk_core.configuration import configuration_test_helper
 
-from smqtk_detection.impls.detect_image_objects.centernet import CenterNetVisdrone
+from smqtk_detection.impls.detect_image_objects.centernet import CenterNetVisdrone, _gather_feat, _gather_feat_mps
 
 try:
     import torch  # type: ignore
@@ -80,6 +80,7 @@ class TestCenterNetVisdrone:
             use_cuda=False,
             batch_size=3,
             num_workers=2,
+            device="cpu"
         )
         for i in configuration_test_helper(inst):
             assert i.arch == "resnet18"
@@ -92,6 +93,7 @@ class TestCenterNetVisdrone:
             assert i.use_cuda is False
             assert i.batch_size == 3
             assert i.num_workers == 2
+            assert str(i.device) == "cpu"
 
     def test_invalid_arch(self) -> None:
         """ Test that an exception is raised when the arch provided is not
@@ -198,3 +200,24 @@ def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
         "wh": test_wh,
         "reg": test_reg,
     }
+
+
+def test_gather_feat_mps() -> None:
+    """
+    Check that alternative implementation for torch.gather on MPS
+    matches torch.gather.
+    """
+    torch.manual_seed(42)
+
+    batch_size = 2
+    num_features = 76800
+    selected_features = 256
+    dim = 2
+
+    feat = torch.randn(batch_size, num_features, dim, device="cpu")
+    ind = torch.randint(0, num_features, (batch_size, selected_features), device="cpu")
+
+    feat_cpu = _gather_feat(feat, ind)
+    feat_mps = _gather_feat_mps(feat, ind)
+
+    assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)

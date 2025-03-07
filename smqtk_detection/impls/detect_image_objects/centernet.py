@@ -71,6 +71,7 @@ class CenterNetVisdrone(DetectImageObjects):
         use_cuda: bool = False,
         batch_size: int = 1,
         num_workers: int = 0,
+        device: Optional[str] = None,
     ):
         """
         :param arch: Backbone architecture to use. One of
@@ -97,6 +98,10 @@ class CenterNetVisdrone(DetectImageObjects):
             to false if no such device is available.
         :param batch_size: Number of images to feed to the torch model at once.
         :param num_workers: Number of subprocesses to use for data loading.
+        :param device: Device on which the computation should be performed.
+            This can be a string such as ``"cpu"``, ``"cuda"``, or ``"cuda:0"``
+            for specifying a particular GPU. If ``None``, the function will use
+            ``"cuda"`` if available; otherwise, it will default to ``"cpu"``.
 
         """
         self.model_urls = {
@@ -150,14 +155,17 @@ class CenterNetVisdrone(DetectImageObjects):
         self.mean = np.asarray([[[0.372949, 0.37837514, 0.36463863]]], dtype=np.float32)
         self.std = np.asarray([[[0.19171683, 0.18299586, 0.19437608]]], dtype=np.float32)
 
-        if use_cuda:
-            if torch.cuda.is_available():
-                self.device = torch.device('cuda')
-            else:
-                logger.info("CUDA device not available, using CPU.")
-                self.device = torch.device('cpu')
+        if device is not None:
+            self.device = torch.device(device)
         else:
-            self.device = torch.device('cpu')
+            if use_cuda:
+                if torch.cuda.is_available():
+                    self.device = torch.device('cuda')
+                else:
+                    logger.info("CUDA device not available, using CPU.")
+                    self.device = torch.device('cpu')
+            else:
+                self.device = torch.device('cpu')
 
         self.model: Optional[_CenterNet] = None
 
@@ -238,7 +246,7 @@ class CenterNetVisdrone(DetectImageObjects):
             # score_maps might be empty if batch size is one and flip is used
             if len(score_maps) > 0:
                 # decode maps into detections
-                dets_mat_batch = _ctdet_decode(score_maps, size_maps, offset_maps, self.k)
+                dets_mat_batch = _ctdet_decode(score_maps, size_maps, offset_maps, self.k, self.device)
                 dets_mat_batch = dets_mat_batch.cpu().numpy()
 
                 dets_mat_batch = np.asarray([
@@ -377,6 +385,7 @@ class CenterNetVisdrone(DetectImageObjects):
             "use_cuda": self.use_cuda,
             "batch_size": self.batch_size,
             "num_workers": self.num_workers,
+            "device": self.device
         }
 
     @classmethod
@@ -565,8 +574,25 @@ if usable:
 
         return feat
 
+    def _gather_feat_mps(feat, ind):  # type: ignore
+        """
+        Alternative implementation for MPS that does not use ``torch.gather``.
+
+        https://github.com/pytorch/pytorch/issues/94765
+        """
+        dim = feat.size(2)  # c
+
+        # ind 2,256 -> 2,256,1 -> 2,256,2
+        # Number of sequences in ind fmap
+        ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
+        # feat 2,76800,2-> 2,256,2
+        batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
+        feat = feat[batch_indices, ind, torch.arange(dim, device=ind.device).view(1, 1, -1).expand_as(ind)]
+
+        return feat
+
     # Get the value of the corresponding center point calculated in the ground truth
-    def _transpose_and_gather_feat(feat, ind):  # type: ignore
+    def _transpose_and_gather_feat(feat, ind, device):  # type: ignore
 
         # Some tensors do not occupy a whole block of memory, but are composed of different data blocks,
         # And tensor's view() operation depends on the whole block of memory，
@@ -576,7 +602,10 @@ if usable:
         # Merge wh into one dimension
         feat = feat.view(feat.size(0), -1, feat.size(3))  # batch, w*h,c
         # ind represents the subscript of the target point set in ground truth
-        feat = _gather_feat(feat, ind)
+        if str(device) == "mps":
+            feat = _gather_feat_mps(feat, ind)
+        else:
+            feat = _gather_feat(feat, ind)
         return feat
 
     # non max suppression
@@ -586,7 +615,7 @@ if usable:
         keep = (hmax == heat).float()
         return heat * keep
 
-    def _topk(scores, K=40):  # type: ignore
+    def _topk(scores, K=40, device=None):  # type: ignore
         batch, cat, height, width = scores.size()
         # The maximum value of statistics for each class channel
         # topk_scores and topk_inds are the top K largest scores and ids in each heatmap (each category) of each batch.
@@ -604,27 +633,32 @@ if usable:
         topk_score, topk_ind = torch.topk(topk_scores.view(batch, -1), K)
         # Find the largest value among all categories
         topk_clses = torch.true_divide(topk_ind, K).int()
-        topk_inds = _gather_feat(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
-        topk_ys = _gather_feat(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
-        topk_xs = _gather_feat(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
+        if str(device) == "mps":
+            topk_inds = _gather_feat_mps(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
+            topk_ys = _gather_feat_mps(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
+            topk_xs = _gather_feat_mps(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
+        else:
+            topk_inds = _gather_feat(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
+            topk_ys = _gather_feat(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
+            topk_xs = _gather_feat(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
 
         return topk_score, topk_inds, topk_clses, topk_ys, topk_xs
 
     # Convert heatmap to bbox
-    def _ctdet_decode(heat, wh, reg, K=100):  # type: ignore
+    def _ctdet_decode(heat, wh, reg, K=100, device=None):  # type: ignore
         batch = heat.size(0)
 
         # perform nms on heatmaps
         heat = _nms(heat)
 
-        scores, inds, clses, ys, xs = _topk(heat, K=K)
+        scores, inds, clses, ys, xs = _topk(heat, K=K, device=device)
 
-        reg = _transpose_and_gather_feat(reg, inds)
+        reg = _transpose_and_gather_feat(reg, inds, device)
         reg = reg.view(batch, K, 2)
         xs = xs.view(batch, K, 1) + reg[:, :, 0:1]
         ys = ys.view(batch, K, 1) + reg[:, :, 1:2]
 
-        wh = _transpose_and_gather_feat(wh, inds)
+        wh = _transpose_and_gather_feat(wh, inds, device)
         wh = wh.view(batch, K, 2)
 
         clses = clses.view(batch, K, 1).float()
