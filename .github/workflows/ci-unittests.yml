@@ -153,9 +153,11 @@ jobs:
 
       - name: CodeCov report submission
         if: ${{ github.event_name != 'schedule' }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          # Note, we are using a known security violation. See description
+          # in codecov.yml for the reasoning behind this choice.
+          # token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           files: coverage.xml
           flags: unittests

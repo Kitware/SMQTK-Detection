@@ -20,3 +20,11 @@ coverage:
         target: 80%
         paths:
           - "!tests/"
+# Note, this is a known security violation. Currently Forks of the
+# repo cannot use our CODECOV CI/CD token, other options were considered
+# before this approach. Permissions are not set that we can turn off
+# codecov token requirement, and Kitware permissions don't allow
+# for secret sharing to forked repositories. In the case that this
+# becomes problematic, this token can get removed and regenerated.
+codecov:
+  token: "8646de9d-7b32-46ee-a2b9-041271c64690"
