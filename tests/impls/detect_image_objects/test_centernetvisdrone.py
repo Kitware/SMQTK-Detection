@@ -225,6 +225,7 @@ def test_gather_feat_mps() -> None:
     ind = torch.randint(0, num_features, (batch_size, selected_features, dim), device="cpu")
 
     feat_cpu = _gather(feat, ind)
-    feat_mps = _gather(feat, ind, force_mps_workaround=True)
+    with mock.patch("smqtk_detection.impls.detect_image_objects.centernet._is_on_mps", return_value=True):
+        feat_mps = _gather(feat, ind)
 
     assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)

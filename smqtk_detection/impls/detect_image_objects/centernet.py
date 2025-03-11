@@ -562,17 +562,19 @@ if usable:
 
         return trans
 
+    def _is_on_mps(input: torch.Tensor) -> bool:
+        return input.device.type == "mps"
+
     def _gather(
         input: torch.Tensor,
         ind: torch.Tensor,
-        force_mps_workaround: bool = False,
     ) -> torch.Tensor:  # type: ignore
         """
         Alternative implementation for MPS that does not use ``torch.gather``.
 
         https://github.com/pytorch/pytorch/issues/94765
         """
-        if input.device.type != "mps" and not force_mps_workaround:
+        if not _is_on_mps(input):
             return input.gather(1, ind)
 
         batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
