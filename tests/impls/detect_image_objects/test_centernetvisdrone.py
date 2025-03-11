@@ -10,7 +10,7 @@ from smqtk_core.configuration import configuration_test_helper
 from smqtk_detection.impls.detect_image_objects.centernet import CenterNetVisdrone
 
 try:
-    from smqtk_detection.impls.detect_image_objects.centernet import _gather_feat, _gather_feat_mps
+    from smqtk_detection.impls.detect_image_objects.centernet import _gather
 except ImportError:
     pass
 
@@ -222,9 +222,9 @@ def test_gather_feat_mps() -> None:
     dim = 2
 
     feat = torch.randn(batch_size, num_features, dim, device="cpu")
-    ind = torch.randint(0, num_features, (batch_size, selected_features), device="cpu")
+    ind = torch.randint(0, num_features, (batch_size, selected_features, dim), device="cpu")
 
-    feat_cpu = _gather_feat(feat, ind)
-    feat_mps = _gather_feat_mps(feat, ind)
+    feat_cpu = _gather(feat, ind, "cpu")
+    feat_mps = _gather(feat, ind, "mps")
 
     assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)

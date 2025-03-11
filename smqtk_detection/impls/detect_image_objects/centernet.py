@@ -246,7 +246,7 @@ class CenterNetVisdrone(DetectImageObjects):
             # score_maps might be empty if batch size is one and flip is used
             if len(score_maps) > 0:
                 # decode maps into detections
-                dets_mat_batch = _ctdet_decode(score_maps, size_maps, offset_maps, self.k, self.device)
+                dets_mat_batch = _ctdet_decode(score_maps, size_maps, offset_maps, self.k)
                 dets_mat_batch = dets_mat_batch.cpu().numpy()
 
                 dets_mat_batch = np.asarray([
@@ -562,6 +562,18 @@ if usable:
 
         return trans
 
+    def _gather(input: torch.Tensor, ind: torch.Tensor, device: str) -> torch.Tensor:  # type: ignore
+        """
+        Alternative implementation for MPS that does not use ``torch.gather``.
+
+        https://github.com/pytorch/pytorch/issues/94765
+        """
+        if device != "mps":
+            return input.gather(1, ind)
+
+        batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
+        return input[batch_indices, ind, torch.arange(input.size(2), device=ind.device).view(1, 1, -1).expand_as(ind)]
+
     def _gather_feat(feat, ind):  # type: ignore
 
         dim = feat.size(2)  # c
@@ -570,29 +582,12 @@ if usable:
         # Number of sequences in ind fmap
         ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
         # feat 2,76800,2-> 2,256,2
-        feat = feat.gather(1, ind)
-
-        return feat
-
-    def _gather_feat_mps(feat, ind):  # type: ignore
-        """
-        Alternative implementation for MPS that does not use ``torch.gather``.
-
-        https://github.com/pytorch/pytorch/issues/94765
-        """
-        dim = feat.size(2)  # c
-
-        # ind 2,256 -> 2,256,1 -> 2,256,2
-        # Number of sequences in ind fmap
-        ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
-        # feat 2,76800,2-> 2,256,2
-        batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
-        feat = feat[batch_indices, ind, torch.arange(dim, device=ind.device).view(1, 1, -1).expand_as(ind)]
+        feat = _gather(feat, ind, feat.device.type)  # feat.device.type allows testing in CI
 
         return feat
 
     # Get the value of the corresponding center point calculated in the ground truth
-    def _transpose_and_gather_feat(feat, ind, device):  # type: ignore
+    def _transpose_and_gather_feat(feat, ind):  # type: ignore
 
         # Some tensors do not occupy a whole block of memory, but are composed of different data blocks,
         # And tensor's view() operation depends on the whole block of memory，
@@ -602,10 +597,7 @@ if usable:
         # Merge wh into one dimension
         feat = feat.view(feat.size(0), -1, feat.size(3))  # batch, w*h,c
         # ind represents the subscript of the target point set in ground truth
-        if str(device) == "mps":
-            feat = _gather_feat_mps(feat, ind)
-        else:
-            feat = _gather_feat(feat, ind)
+        feat = _gather_feat(feat, ind)
         return feat
 
     # non max suppression
@@ -615,7 +607,7 @@ if usable:
         keep = (hmax == heat).float()
         return heat * keep
 
-    def _topk(scores, K=40, device=None):  # type: ignore
+    def _topk(scores, K=40):  # type: ignore
         batch, cat, height, width = scores.size()
         # The maximum value of statistics for each class channel
         # topk_scores and topk_inds are the top K largest scores and ids in each heatmap (each category) of each batch.
@@ -633,32 +625,27 @@ if usable:
         topk_score, topk_ind = torch.topk(topk_scores.view(batch, -1), K)
         # Find the largest value among all categories
         topk_clses = torch.true_divide(topk_ind, K).int()
-        if str(device) == "mps":
-            topk_inds = _gather_feat_mps(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
-            topk_ys = _gather_feat_mps(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
-            topk_xs = _gather_feat_mps(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
-        else:
-            topk_inds = _gather_feat(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
-            topk_ys = _gather_feat(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
-            topk_xs = _gather_feat(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
+        topk_inds = _gather_feat(topk_inds.view(batch, -1, 1), topk_ind).view(batch, K)
+        topk_ys = _gather_feat(topk_ys.view(batch, -1, 1), topk_ind).view(batch, K)
+        topk_xs = _gather_feat(topk_xs.view(batch, -1, 1), topk_ind).view(batch, K)
 
         return topk_score, topk_inds, topk_clses, topk_ys, topk_xs
 
     # Convert heatmap to bbox
-    def _ctdet_decode(heat, wh, reg, K=100, device=None):  # type: ignore
+    def _ctdet_decode(heat, wh, reg, K=100):  # type: ignore
         batch = heat.size(0)
 
         # perform nms on heatmaps
         heat = _nms(heat)
 
-        scores, inds, clses, ys, xs = _topk(heat, K=K, device=device)
+        scores, inds, clses, ys, xs = _topk(heat, K=K)
 
-        reg = _transpose_and_gather_feat(reg, inds, device)
+        reg = _transpose_and_gather_feat(reg, inds)
         reg = reg.view(batch, K, 2)
         xs = xs.view(batch, K, 1) + reg[:, :, 0:1]
         ys = ys.view(batch, K, 1) + reg[:, :, 1:2]
 
-        wh = _transpose_and_gather_feat(wh, inds, device)
+        wh = _transpose_and_gather_feat(wh, inds)
         wh = wh.view(batch, K, 2)
 
         clses = clses.view(batch, K, 1).float()
