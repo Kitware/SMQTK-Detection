@@ -562,13 +562,17 @@ if usable:
 
         return trans
 
-    def _gather(input: torch.Tensor, ind: torch.Tensor, device: str) -> torch.Tensor:  # type: ignore
+    def _gather(
+        input: torch.Tensor,
+        ind: torch.Tensor,
+        force_mps_workaround: bool = False,
+    ) -> torch.Tensor:  # type: ignore
         """
         Alternative implementation for MPS that does not use ``torch.gather``.
 
         https://github.com/pytorch/pytorch/issues/94765
         """
-        if device != "mps":
+        if input.device.type != "mps" and not force_mps_workaround:
             return input.gather(1, ind)
 
         batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
@@ -582,7 +586,7 @@ if usable:
         # Number of sequences in ind fmap
         ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
         # feat 2,76800,2-> 2,256,2
-        feat = _gather(feat, ind, feat.device.type)  # feat.device.type allows testing in CI
+        feat = _gather(feat, ind)
 
         return feat
 
