@@ -82,7 +82,7 @@ class TestCenterNetVisdrone:
             scales=[0.3, 0.6],
             flip=True,
             nms=False,
-            use_cuda=False,
+            use_cuda=None,
             batch_size=3,
             num_workers=2,
             device="cpu"
@@ -95,7 +95,7 @@ class TestCenterNetVisdrone:
             assert i.scales == [0.3, 0.6]
             assert i.flip is True
             assert i.nms is False
-            assert i.use_cuda is False
+            assert i.use_cuda is None
             assert i.batch_size == 3
             assert i.num_workers == 2
             assert str(i.device) == "cpu"
@@ -184,6 +184,27 @@ class TestCenterNetVisdrone:
             list(inst.detect_objects(test_input))
             assert m_model.call_count == 14
 
+    def test_gather_feat_mps(self) -> None:
+        """
+        Check that alternative implementation for torch.gather on MPS
+        matches torch.gather.
+        """
+        torch.manual_seed(42)
+
+        batch_size = 2
+        num_features = 76800
+        selected_features = 256
+        dim = 2
+
+        feat = torch.randn(batch_size, num_features, dim, device="cpu")
+        ind = torch.randint(0, num_features, (batch_size, selected_features, dim), device="cpu")
+
+        feat_cpu = _gather(feat, ind)
+        with mock.patch("smqtk_detection.impls.detect_image_objects.centernet._is_on_mps", return_value=True):
+            feat_mps = _gather(feat, ind)
+
+        assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)
+
 
 def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
     """
@@ -205,27 +226,3 @@ def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
         "wh": test_wh,
         "reg": test_reg,
     }
-
-
-@pytest.mark.skipif(not CenterNetVisdrone.is_usable(),
-                    reason="CenterNetVisdrone is not usable.")
-def test_gather_feat_mps() -> None:
-    """
-    Check that alternative implementation for torch.gather on MPS
-    matches torch.gather.
-    """
-    torch.manual_seed(42)
-
-    batch_size = 2
-    num_features = 76800
-    selected_features = 256
-    dim = 2
-
-    feat = torch.randn(batch_size, num_features, dim, device="cpu")
-    ind = torch.randint(0, num_features, (batch_size, selected_features, dim), device="cpu")
-
-    feat_cpu = _gather(feat, ind)
-    with mock.patch("smqtk_detection.impls.detect_image_objects.centernet._is_on_mps", return_value=True):
-        feat_mps = _gather(feat, ind)
-
-    assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)

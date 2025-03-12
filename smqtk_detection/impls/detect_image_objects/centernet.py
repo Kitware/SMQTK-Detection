@@ -68,10 +68,10 @@ class CenterNetVisdrone(DetectImageObjects):
         scales: Optional[List[float]] = None,
         flip: bool = False,
         nms: bool = True,
-        use_cuda: bool = False,
+        use_cuda: Optional[bool] = None,
         batch_size: int = 1,
         num_workers: int = 0,
-        device: Optional[str] = None,
+        device: str = "cpu",
     ):
         """
         :param arch: Backbone architecture to use. One of
@@ -94,8 +94,8 @@ class CenterNetVisdrone(DetectImageObjects):
             done for each scaled version the images provided.
         :param nms: Use soft-nms to filter repeat detections. This defaults to
             true if more than one scale is used.
-        :param use_cuda: Use a CUDA device to compute detections. This defaults
-            to false if no such device is available.
+        :param use_cuda: (Deprecated) If set, issues a warning. `device`
+            should be used instead.
         :param batch_size: Number of images to feed to the torch model at once.
         :param num_workers: Number of subprocesses to use for data loading.
         :param device: Device on which the computation should be performed.
@@ -155,17 +155,20 @@ class CenterNetVisdrone(DetectImageObjects):
         self.mean = np.asarray([[[0.372949, 0.37837514, 0.36463863]]], dtype=np.float32)
         self.std = np.asarray([[[0.19171683, 0.18299586, 0.19437608]]], dtype=np.float32)
 
-        if device is not None:
-            self.device = torch.device(device)
-        else:
-            if use_cuda:
-                if torch.cuda.is_available():
-                    self.device = torch.device('cuda')
-                else:
-                    logger.info("CUDA device not available, using CPU.")
-                    self.device = torch.device('cpu')
-            else:
-                self.device = torch.device('cpu')
+        if use_cuda is not None:
+            warnings.warn(
+                "`use_cuda` is deprecated and will be removed in a future version. "
+                "Use `device` instead.", DeprecationWarning
+            )
+
+        if use_cuda is not None and "cuda" not in device:
+            warnings.warn(
+                f"`use_cuda` ({use_cuda}) conflicts with `device` ({device}). "
+                "The `device` parameter will take precedence.",
+                UserWarning
+            )
+
+        self.device = torch.device(device)
 
         self.model: Optional[_CenterNet] = None
 

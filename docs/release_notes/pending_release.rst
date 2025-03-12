@@ -14,3 +14,5 @@ CI/CD
 
 Fixes
 -----
+
+* Fixed a bug in ``CenterNetVisdrone`` that prevented running on MPS device.
