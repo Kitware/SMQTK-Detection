@@ -100,8 +100,7 @@ class CenterNetVisdrone(DetectImageObjects):
         :param num_workers: Number of subprocesses to use for data loading.
         :param device: Device on which the computation should be performed.
             This can be a string such as ``"cpu"``, ``"cuda"``, or ``"cuda:0"``
-            for specifying a particular GPU. If ``None``, the function will use
-            ``"cuda"`` if available; otherwise, it will default to ``"cpu"``.
+            for specifying a particular GPU.
 
         """
         self.model_urls = {
