@@ -68,9 +68,10 @@ class CenterNetVisdrone(DetectImageObjects):
         scales: Optional[List[float]] = None,
         flip: bool = False,
         nms: bool = True,
-        use_cuda: bool = False,
+        use_cuda: Optional[bool] = None,
         batch_size: int = 1,
         num_workers: int = 0,
+        device: str = "cpu",
     ):
         """
         :param arch: Backbone architecture to use. One of
@@ -93,10 +94,13 @@ class CenterNetVisdrone(DetectImageObjects):
             done for each scaled version the images provided.
         :param nms: Use soft-nms to filter repeat detections. This defaults to
             true if more than one scale is used.
-        :param use_cuda: Use a CUDA device to compute detections. This defaults
-            to false if no such device is available.
+        :param use_cuda: (Deprecated) If set, issues a warning. `device`
+            should be used instead.
         :param batch_size: Number of images to feed to the torch model at once.
         :param num_workers: Number of subprocesses to use for data loading.
+        :param device: Device on which the computation should be performed.
+            This can be a string such as ``"cpu"``, ``"cuda"``, or ``"cuda:0"``
+            for specifying a particular GPU.
 
         """
         self.model_urls = {
@@ -150,14 +154,20 @@ class CenterNetVisdrone(DetectImageObjects):
         self.mean = np.asarray([[[0.372949, 0.37837514, 0.36463863]]], dtype=np.float32)
         self.std = np.asarray([[[0.19171683, 0.18299586, 0.19437608]]], dtype=np.float32)
 
-        if use_cuda:
-            if torch.cuda.is_available():
-                self.device = torch.device('cuda')
-            else:
-                logger.info("CUDA device not available, using CPU.")
-                self.device = torch.device('cpu')
-        else:
-            self.device = torch.device('cpu')
+        if use_cuda is not None:
+            warnings.warn(
+                "`use_cuda` is deprecated and will be removed in a future version. "
+                "Use `device` instead.", DeprecationWarning
+            )
+
+        if use_cuda is not None and "cuda" not in device:
+            warnings.warn(
+                f"`use_cuda` ({use_cuda}) conflicts with `device` ({device}). "
+                "The `device` parameter will take precedence.",
+                UserWarning
+            )
+
+        self.device = torch.device(device)
 
         self.model: Optional[_CenterNet] = None
 
@@ -377,6 +387,7 @@ class CenterNetVisdrone(DetectImageObjects):
             "use_cuda": self.use_cuda,
             "batch_size": self.batch_size,
             "num_workers": self.num_workers,
+            "device": self.device
         }
 
     @classmethod
@@ -553,6 +564,24 @@ if usable:
 
         return trans
 
+    def _is_on_mps(input: torch.Tensor) -> bool:
+        return input.device.type == "mps"
+
+    def _gather(
+        input: torch.Tensor,
+        ind: torch.Tensor,
+    ) -> torch.Tensor:  # type: ignore
+        """
+        Alternative implementation for MPS that does not use ``torch.gather``.
+
+        https://github.com/pytorch/pytorch/issues/94765
+        """
+        if not _is_on_mps(input):
+            return input.gather(1, ind)
+
+        batch_indices = torch.arange(ind.size(0), device=ind.device).view(-1, 1, 1).expand_as(ind)
+        return input[batch_indices, ind, torch.arange(input.size(2), device=ind.device).view(1, 1, -1).expand_as(ind)]
+
     def _gather_feat(feat, ind):  # type: ignore
 
         dim = feat.size(2)  # c
@@ -561,7 +590,7 @@ if usable:
         # Number of sequences in ind fmap
         ind = ind.unsqueeze(2).expand(ind.size(0), ind.size(1), dim)
         # feat 2,76800,2-> 2,256,2
-        feat = feat.gather(1, ind)
+        feat = _gather(feat, ind)
 
         return feat
 
