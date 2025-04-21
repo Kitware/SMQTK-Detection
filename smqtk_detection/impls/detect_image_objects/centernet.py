@@ -72,6 +72,7 @@ class CenterNetVisdrone(DetectImageObjects):
         batch_size: int = 1,
         num_workers: int = 0,
         device: str = "cpu",
+        reorder_malformed_bboxes: bool = False,
     ):
         """
         :param arch: Backbone architecture to use. One of
@@ -101,7 +102,10 @@ class CenterNetVisdrone(DetectImageObjects):
         :param device: Device on which the computation should be performed.
             This can be a string such as ``"cpu"``, ``"cuda"``, or ``"cuda:0"``
             for specifying a particular GPU.
-
+        :param reorder_malformed_bboxes: If True, malformed bboxes
+            (max vertex < min vertex) returned by the detector  will be reordered,
+            then returned as normal. If False (default), malformed bboxes will instead
+            be dropped.
         """
         self.model_urls = {
             "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
@@ -168,6 +172,7 @@ class CenterNetVisdrone(DetectImageObjects):
             )
 
         self.device = torch.device(device)
+        self.reorder_malformed_bboxes = reorder_malformed_bboxes
 
         self.model: Optional[_CenterNet] = None
 
@@ -369,6 +374,24 @@ class CenterNetVisdrone(DetectImageObjects):
         # Create and collect tuples.
         dets_list = []
         for det, cls_idx in zip(dets_mat, class_indices):
+            # If max vertex < min vertex, reorder/reject detection based on config
+            if not (det[2:4] >= det[0:2]).all():
+                if self.reorder_malformed_bboxes:
+                    warnings.warn(
+                        f"Reordering malformed bbox: {det[0:4]}",
+                        RuntimeWarning,
+                    )
+                    if det[2] < det[0]:
+                        det[0], det[2] = det[2], det[0]
+                    if det[3] < det[1]:
+                        det[1], det[3] = det[3], det[1]
+                else:
+                    warnings.warn(
+                        f"Skipping malformed bbox: {det[0:4]}",
+                        RuntimeWarning,
+                    )
+                    continue
+
             bbox = AxisAlignedBoundingBox(det[0:2], det[2:4])
             class_dict = zero_dict.copy()
             class_dict[CLASS_NAMES[cls_idx]] = det[4]
@@ -387,7 +410,8 @@ class CenterNetVisdrone(DetectImageObjects):
             "use_cuda": self.use_cuda,
             "batch_size": self.batch_size,
             "num_workers": self.num_workers,
-            "device": self.device
+            "device": self.device,
+            "reorder_malformed_bboxes": self.reorder_malformed_bboxes,
         }
 
     @classmethod
