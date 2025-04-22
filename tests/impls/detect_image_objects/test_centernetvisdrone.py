@@ -85,7 +85,8 @@ class TestCenterNetVisdrone:
             use_cuda=None,
             batch_size=3,
             num_workers=2,
-            device="cpu"
+            device="cpu",
+            reorder_malformed_bboxes=True
         )
         for i in configuration_test_helper(inst):
             assert i.arch == "resnet18"
@@ -99,6 +100,7 @@ class TestCenterNetVisdrone:
             assert i.batch_size == 3
             assert i.num_workers == 2
             assert str(i.device) == "cpu"
+            assert i.reorder_malformed_bboxes
 
     def test_invalid_arch(self) -> None:
         """ Test that an exception is raised when the arch provided is not
@@ -204,6 +206,37 @@ class TestCenterNetVisdrone:
             feat_mps = _gather(feat, ind)
 
         assert torch.allclose(feat_cpu, feat_mps, atol=1e-6)
+
+    def test_malformed_bbox(self) -> None:
+        """
+        Check that malformed bbox settings are appropriately used
+        """
+        # x1, y1, x2, y2, confidence, class idx
+        mock_dets = np.asarray([
+            [0, 0, 2, 2, 0.5, 1],
+            [2, 2, 0, 0, 0.5, 1],  # reordered box will be same as 0th box
+        ])
+
+        reorder_inst = CenterNetVisdrone(
+            "resnet18",
+            "mock path",
+            reorder_malformed_bboxes=True,
+        )
+        with pytest.warns(RuntimeWarning) as reorder_record:
+            reorder_out = reorder_inst._dets_mat_to_list(np.copy(mock_dets))
+        assert len(reorder_out) == mock_dets.shape[0]
+        assert reorder_out[0][0] == reorder_out[1][0]
+        assert "Reordering" in str(reorder_record[0].message)
+
+        drop_inst = CenterNetVisdrone(
+            "resnet18",
+            "mock path",
+            reorder_malformed_bboxes=False,
+        )
+        with pytest.warns(RuntimeWarning) as drop_record:
+            drop_out = drop_inst._dets_mat_to_list(np.copy(mock_dets))
+        assert len(drop_out) == mock_dets.shape[0] - 1
+        assert "Skipping" in str(drop_record[0].message)
 
 
 def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821
