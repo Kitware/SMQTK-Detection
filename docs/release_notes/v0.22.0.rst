@@ -1,6 +1,8 @@
 v0.22.0
 =======
 
+Added new configuration option for handling malformed bboxes within ``CenterNetVisdrone``.
+
 Updates / New Features
 ----------------------
 
