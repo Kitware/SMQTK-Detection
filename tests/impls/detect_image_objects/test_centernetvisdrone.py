@@ -222,21 +222,17 @@ class TestCenterNetVisdrone:
             "mock path",
             reorder_malformed_bboxes=True,
         )
-        with pytest.warns(RuntimeWarning) as reorder_record:
-            reorder_out = reorder_inst._dets_mat_to_list(np.copy(mock_dets))
+        reorder_out = reorder_inst._dets_mat_to_list(np.copy(mock_dets))
         assert len(reorder_out) == mock_dets.shape[0]
         assert reorder_out[0][0] == reorder_out[1][0]
-        assert "Reordering" in str(reorder_record[0].message)
 
         drop_inst = CenterNetVisdrone(
             "resnet18",
             "mock path",
             reorder_malformed_bboxes=False,
         )
-        with pytest.warns(RuntimeWarning) as drop_record:
-            drop_out = drop_inst._dets_mat_to_list(np.copy(mock_dets))
+        drop_out = drop_inst._dets_mat_to_list(np.copy(mock_dets))
         assert len(drop_out) == mock_dets.shape[0] - 1
-        assert "Skipping" in str(drop_record[0].message)
 
 
 def mock_model_forward(img_tensors: "torch.Tensor") -> Dict:  # noqa: F821

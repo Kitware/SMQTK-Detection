@@ -10,7 +10,8 @@ Updates / New Features
   malformed bboxes are encountered. If ``True``, bbox vertices will be sorted such that (``max_vertex >= min_vertex``),
   otherwise, (new default) the offending detection will be dropped from the list of detections completely. This new
   default is similar to previous behavior, but avoids hitting the exception such that the remaining well-formed
-  detections can be returned.
+  detections can be returned. Debug logging may be enabled to have more visibility into when malformed bboxes are
+  encountered.
 
 Fixes
 -----
