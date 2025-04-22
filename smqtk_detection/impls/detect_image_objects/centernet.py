@@ -377,19 +377,13 @@ class CenterNetVisdrone(DetectImageObjects):
             # If max vertex < min vertex, reorder/reject detection based on config
             if not (det[2:4] >= det[0:2]).all():
                 if self.reorder_malformed_bboxes:
-                    warnings.warn(
-                        f"Reordering malformed bbox: {det[0:4]}",
-                        RuntimeWarning,
-                    )
+                    logger.debug(f"Reordering malformed bbox: {det[0:4]}")
                     if det[2] < det[0]:
                         det[0], det[2] = det[2], det[0]
                     if det[3] < det[1]:
                         det[1], det[3] = det[3], det[1]
                 else:
-                    warnings.warn(
-                        f"Skipping malformed bbox: {det[0:4]}",
-                        RuntimeWarning,
-                    )
+                    logger.debug(f"Skipping malformed bbox: {det[0:4]}")
                     continue
 
             bbox = AxisAlignedBoundingBox(det[0:2], det[2:4])
