@@ -1,6 +1,9 @@
 v0.23.0
 =======
 
+This release updates Python version support to require 3.10+ and extend testing through 3.13.
+Codecov integration was also improved to support coverage reporting on pull requests from forks.
+
 Updates / New Features
 ----------------------
 
@@ -10,4 +13,5 @@ Updates / New Features
 
 Fixes
 -----
+
 * Codecov integration to support coverage reporting on pull requests from forks (unprotected branches).
