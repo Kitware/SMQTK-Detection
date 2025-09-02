@@ -1,3 +1,6 @@
+codecov:
+  strict_yaml_branch: master
+
 coverage:
   status:
     project:
@@ -9,7 +12,7 @@ coverage:
       package:
         target: 80%
         paths:
-          - "!tests/"
+          - "smqtk_detection/"
     patch:
       default: false
       tests:
@@ -19,7 +22,7 @@ coverage:
       package:
         target: 80%
         paths:
-          - "!tests/"
+          - "smqtk_detection/"
 # Note, this is a known security violation. Currently Forks of the
 # repo cannot use our CODECOV CI/CD token, other options were considered
 # before this approach. Permissions are not set that we can turn off
