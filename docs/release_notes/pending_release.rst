@@ -9,8 +9,7 @@ CI / CD
 * Added a dependency review workflow to improve tracking and resolution of
   dependabot alerts.
 
-* Resolved cache size issues by splitting the unit test workflow into separate
-  *core* and *extras* jobs, with the *extras* job depending on *core*.
+* Resolved cache size issues by excluding cache saving for extras.
 
 Fixes
 -----
