@@ -4,6 +4,18 @@ Pending Release Notes
 Updates / New Features
 ----------------------
 
+* Added Python 3.14 support and testing for the core package and both optional
+  dependency configurations. Updated NumPy, Torch, Torchvision, Numba, and test
+  dependencies to versions with Python 3.14 support.
+
+* Updated the minimum SMQTK dependency versions to Core 0.22.0,
+  Dataprovider 0.20.0, Image-IO 0.19.0, and Classifier 0.21.0.
+
+* Declared NumPy compatibility floors for Python 3.10–3.12, 3.13, and 3.14
+  without an upper bound. Supported Torchvision versions exclude Python 3.14.1.
+
+* Required OpenCV 4.10.0.84 or newer for NumPy 2-compatible pre-built packages.
+
 CI / CD
 
 * Added a dependency review workflow to improve tracking and resolution of
@@ -14,3 +26,9 @@ CI / CD
 
 Fixes
 -----
+
+* Updated direct and locked dependencies to resolve reported security
+  vulnerabilities, including the optional PyTorch dependencies.
+
+* CI pulls Docker's official Python images from Amazon ECR Public, avoiding
+  Docker Hub's unauthenticated pull rate limit without requiring credentials.
