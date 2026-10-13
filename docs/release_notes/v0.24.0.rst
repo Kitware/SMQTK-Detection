@@ -1,6 +1,11 @@
 v0.24.0
 =======
 
+This release adds official Python 3.14 support and testing for the base package
+and the Torch and CenterNet extras. It updates dependencies for compatibility
+and security, supports NumPy 2 across the supported Python versions, and improves
+CI reliability with cached environments and Python images from Amazon ECR Public.
+
 Updates / New Features
 ----------------------
 
