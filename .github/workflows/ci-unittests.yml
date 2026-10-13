@@ -27,10 +27,12 @@ defaults:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 # NOTE: Github actions does not support anchors apparently. Forgive duplication of job
 #       steps.
+# Use Docker's official Python images mirrored on Amazon ECR Public.
+# Pulls need no credentials and are not subject to Docker Hub's pull rate limit.
 jobs:
   lint:
     runs-on: ubuntu-latest
-    container: python:3.10
+    container: public.ecr.aws/docker/library/python:3.10
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
@@ -57,7 +59,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
-    container: python:3.10
+    container: public.ecr.aws/docker/library/python:3.10
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
@@ -86,10 +88,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
       # We want all python versions tested even if one of them happens to fail
       fail-fast: false
-    container: python:${{ matrix.python-version }}
+    container: public.ecr.aws/docker/library/python:${{ matrix.python-version }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -159,11 +161,11 @@ jobs:
     strategy:
       matrix:
         # Extras for included, optional plugin support (space-separated lists)
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         opt-extra: ["torch", "centernet"]
       # We want all python versions tested even if one of them happens to fail
       fail-fast: false
-    container: python:${{ matrix.python-version }}
+    container: public.ecr.aws/docker/library/python:${{ matrix.python-version }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
